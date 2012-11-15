@@ -1,15 +1,15 @@
 package com.apkc.archtype;
 
-import com.apkc.archtype.quals.Component;
+import com.apkc.archtype.quals.*;
 import java.lang.annotation.Annotation;
 
 /**
- * Hello world!
+ * Test annotation and reflection and like stuff
  *
  */
 @Component(
         name = "TestAnno",
-        patterns = {"MVC","Adapter","Factory"}
+        patterns = {@Pattern(name = "MVC", role="Model")}
         )
 public class App 
 {
@@ -22,8 +22,9 @@ public class App
           if(annotation instanceof Component){
               Component compo = (Component) annotation;
               System.out.println("name: " + compo.name());
-              for(String p : compo.patterns()){
-                System.out.println("pattern: " + p);
+              for(Pattern p : compo.patterns()){
+                System.out.println("pattern name: " + p.name());
+                System.out.println("pattern role: " + p.role());
               }
           }
       }  
