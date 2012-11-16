@@ -5,3 +5,10 @@ Masters school project on how to annotate source code to make sure that architec
 ## Requirements
 
 maven
+
+* checker framework
+* alloy
+
+install alloy locally:
+
+	mvn install:install-file -DlocalRepositoryPath=deps -DcreateChecksum=true -Dpackaging=jar -Dfile=alloy4.2.jar -DgroupId=org.alloy -DartifactId=alloy -Dversion=4.2
