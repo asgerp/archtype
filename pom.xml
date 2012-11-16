@@ -14,7 +14,31 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+    <repositories>
+       <repository>
+        <id>alloy</id>
+        <url>file://${project.basedir}/deps/alloy4.2.jar</url>
+       </repository>
+        <repository>
+            <id>checker-framework-repo</id>
+            <url>http://types.cs.washington.edu/m2-repo</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>checker-framework-repo</id>
+            <url>http://types.cs.washington.edu/m2-repo</url>
+        </pluginRepository>
+    </pluginRepositories>
+
   <dependencies>
+     <!-- annotations for the standard checkers: nullness, interning, mutability -->
+     <dependency>
+        <groupId>types.checkers</groupId>
+        <artifactId>checkers-quals</artifactId>
+        <version>1.4.3</version>
+     </dependency>
+    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -22,4 +46,5 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  
 </project>

@@ -3,13 +3,14 @@ package com.apkc.archtype;
 import com.apkc.archtype.quals.*;
 import java.lang.annotation.Annotation;
 
+
 /**
  * Test annotation and reflection and like stuff
  *
  */
 @Component(
         name = "TestAnno",
-        patterns = {@Pattern(name = "MVC", role="Model")}
+        patterns = {@Pattern(name = "MVC", role="Model"), @Pattern(name = "ClientServer", role= "client")}
         )
 public class App 
 {
