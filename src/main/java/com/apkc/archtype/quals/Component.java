@@ -4,15 +4,13 @@
  */
 package com.apkc.archtype.quals;
 
-import checkers.quals.*;
+
 import java.lang.annotation.*;
 /**
- *
+ * 
  * @author asger
  */
-@Retention(RetentionPolicy.RUNTIME)
-@TypeQualifier
-@SubtypeOf( Unqualified.class )
+@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface Component {
     public String name();
