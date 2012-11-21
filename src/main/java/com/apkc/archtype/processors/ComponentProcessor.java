@@ -6,6 +6,7 @@ package com.apkc.archtype.processors;
 
 import com.apkc.archtype.quals.Component;
 import com.apkc.archtype.quals.Pattern;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -53,7 +54,10 @@ public class ComponentProcessor extends AbstractProcessor {
         return claimed;
     }
     private void processAnnotation(Element e, Messager m){
-        
+        List<? extends Element> enclosedElements = e.getEnclosedElements();
+        for(Element ee: enclosedElements){
+            System.out.println(ee.asType().toString());
+        }
         Component com = e.getAnnotation(Component.class);
         System.out.println("{");
         System.out.println("Component: ");

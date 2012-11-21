@@ -16,4 +16,5 @@ public @interface Component {
     public String name();
     String[] composes() default{};
     Pattern[] patterns() default{};
+
 }
