@@ -12,83 +12,120 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package com.apkc.archtype;
 
-import java.util.Arrays;
-import java.util.List;
+import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
-import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4compiler.ast.Attr;
-import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
+import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
-import edu.mit.csail.sdg.alloy4compiler.ast.Func;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
+import edu.mit.csail.sdg.alloy4compiler.ast.Module;
+import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
-import static edu.mit.csail.sdg.alloy4.A4Reporter.NOP;
+import java.io.*;
 
-/** This class demonstrates how to access Alloy4 via the API. */
-
+/**
+ * This class demonstrates how to access Alloy4 via the API.
+ */
 public final class AlloyTest {
+    
+    // patterns we'll be supporting, extend as necessary
+    private enum Pattern {
+        MVC, NOTMVC
+    }
+    /**
+     * doTest generates a piece of alloy code to test a generated model's 
+     * conformity with a general pattern such as MVC, client-server etc.
+     * @param modelName - name used in the alloy code for the root sig describing the model
+     * @param modelStr - alloy code describing the model to test
+     * @param genPatternName - name of pattern to test conformity with
+     * Ex. - doTest("EHR",<some alloy code here in str>,"MVC")
+     */
+    public void doTest(String modelName, String modelStr, String genPatternName) {
+        Pattern p;
+        // test if supported pattern
+        try {
+            p = Pattern.valueOf(genPatternName);
+        } catch (IllegalArgumentException iae) {
+            System.out.println(genPatternName+ "is an unsupported pattern!");
+            //iae.printStackTrace();
+        }
+        // conformity check command we need to customize and append to file
+        String conformStr = "assert conforms { %PATNAME%_style[%MODELNAME%] } check conforms";
+        String content = "";
+        //gen file content
+        content = "open " + genPatternName + "\n" + modelStr;
+        conformStr = conformStr.replace("%PATNAME%",genPatternName);
+        conformStr = conformStr.replace("%MODELNAME%",modelName);
+        content += conformStr;
+        
+        // output content to file
+        String fname = "alloy_models/alloyTest.als";
+        writeToFile(content,fname);
+        
+        // pass file to alloy for interpreting
+        try {
+            passToAlloy(fname);
+        } catch (Err e) {
+            System.out.println("Error: "+e.msg);
+        } 
+    }
+    /**
+     * writes a string to a file, overwrites preexisting files
+     * @param content - file content
+     * @param filename - name of file to write to
+     */
+    private void writeToFile(String content,String filename) {
+        FileWriter fstream = null;
+        try {
+            // delete preexisting file
+            File file = new File(filename);
+            if (file.exists()) {
+                file.delete();
+            }
+            // output using FileWriter
+            fstream = new FileWriter(filename);
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write(content);
+            out.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    /**
+     * @param filename - the file to pass to alloy for interpreting 
+     */
+    private static void passToAlloy(String filename) throws Err {
+        // boilerplate alloy4 reporter code
+        A4Reporter rep = new A4Reporter() {
+            // here we choose to display each "warning" by printing it to System.out
+            @Override
+            public void warning(ErrorWarning msg) {
+                System.out.print("Relevance Warning:\n" + (msg.toString().trim()) + "\n\n");
+                System.out.flush();
+            }
+        };
+        // Parse+typecheck the model
+        System.out.println("=========== Parsing+Typechecking " + filename + " =============");
+        Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
 
+        // Choose some default options for how you want to execute the commands
+        A4Options options = new A4Options();
+        options.solver = A4Options.SatSolver.SAT4J;
+        for (Command command : world.getAllCommands()) {
+            // Execute the command
+            System.out.println("============ Command " + command + ": ============");
+            A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
+            // Print the outcome
+            System.out.println(ans);
+            System.out.println("Satisfiable: " + ans.satisfiable());
+        }
+    }
+    
     public static void main(String[] args) throws Err {
-
-        // Chooses the Alloy4 options
-        A4Options opt = new A4Options();
-        opt.solver = A4Options.SatSolver.SAT4J;
-
-        // abstract sig A {}
-        PrimSig A = new PrimSig("A", Attr.ABSTRACT);
-
-        // sig B {}
-        PrimSig B = new PrimSig("B");
-
-        // one sig A1 extends A {}
-        PrimSig A1 = new PrimSig("A1", A, Attr.ONE);
-
-        // one sig A2 extends A {}
-        PrimSig A2 = new PrimSig("A2", A, Attr.ONE);
-
-        // A { f: B lone->lone B }
-        Expr f = A.addField("f", B.lone_arrow_lone(B));
-        // Since (B lone->lone B) is not unary,  the default is "setOf",  meaning "f:set (B lone->lone B)"
-
-        // A { g: B }
-        Expr g = A.addField("g", B);
-        // The line above is the same as:   A.addField(null, "g", B.oneOf())  since B is unary.
-        // If you want "setOf", you need:   A.addField(null, "g", B.setOf())
-
-        // pred someG { some g }
-        Func someG = new Func(null, "SomeG", null, null, g.some());
-
-        // pred atMostThree[x:univ, y:univ] { #(x+y) >= 3 }
-        Decl x = UNIV.oneOf("x");
-        Decl y = UNIV.oneOf("y");
-        Expr body = x.get().plus(y.get()).cardinality().lte(ExprConstant.makeNUMBER(3));
-        Func atMost3 = new Func(null, "atMost3", Util.asList(x,y), null, body);
-
-        List<Sig> sigs = Arrays.asList(new Sig[]{A, B, A1, A2});
-
-        // run { some A && atMostThree[B,B] } for 3 but 3 int, 3 seq
-        Expr expr1 = A.some().and(atMost3.call(B,B));
-        Command cmd1 = new Command(false, 3, 3, 3, expr1);
-        A4Solution sol1 = TranslateAlloyToKodkod.execute_command(NOP, sigs, cmd1, opt);
-        System.out.println("[Solution1]:");
-        System.out.println(sol1.toString());
-
-        // run { some f && SomeG[] } for 3 but 2 int, 1 seq, 5 A, exactly 6 B
-        Expr expr2 = f.some().and(someG.call());
-        Command cmd2 = new Command(false, 3, 2, 1, expr2);
-        cmd2 = cmd2.change(A, false, 5);
-        cmd2 = cmd2.change(B, true, 6);
-        A4Solution sol2 = TranslateAlloyToKodkod.execute_command(NOP, sigs, cmd2, opt);
-        System.out.println("[Solution2]:");
-        System.out.println(sol2.toString());
+        // quick test
+        String filename = "alloy_models/test.als";
+        passToAlloy(filename);
     }
 }
