@@ -152,7 +152,7 @@ public class ComponentProcessor extends AbstractProcessor {
                         pat = c.getPattern();
                         contains.append(" + ");
                     } else{
-                        contains.append("\n");
+                        contains.append("\n}\n");
                     }
                 }
             }
