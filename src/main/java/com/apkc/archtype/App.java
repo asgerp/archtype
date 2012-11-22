@@ -10,7 +10,7 @@ import java.lang.annotation.Annotation;
  */
 @Component(
         name = "TestAnno",
-        patterns = {@Pattern(name = "MVC", role="Model"), @Pattern(name = "ClientServer", role= "client")}
+        patterns = {@Pattern(kind = "MVC",name="tes", role="Model"), @Pattern(name="tes",kind = "ClientServer", role= "client")}
         )
 public class App 
 {

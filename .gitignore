@@ -32,6 +32,8 @@ target/
 
 *.class
 
+*.als 
+
 deps/alloy4.2/
 
 .DS_Store

@@ -14,7 +14,6 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 public @interface Component {
     public String name();
-    String[] composes() default{};
     Pattern[] patterns() default{};
 
 }

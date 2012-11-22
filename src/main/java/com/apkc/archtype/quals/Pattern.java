@@ -13,5 +13,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 public @interface Pattern {
     public String name();
+    public String kind();
     public String role();
+    public String[] references() default {};
 }
