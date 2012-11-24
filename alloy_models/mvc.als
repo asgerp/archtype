@@ -9,6 +9,8 @@ abstract sig View extends Element { }
 abstract sig Controller extends Element { }
 
 pred mvc_style [c: Configuration] {
-	all m: c.elements & Model | m.references not in View	
+	all m: c.elements & Model | all r: m.references | r not in View	
+	all m: c.elements & View | m.references not in Model	
 }
+
 
