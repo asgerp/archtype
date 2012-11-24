@@ -82,13 +82,28 @@ public class ComponentProcessor extends AbstractProcessor {
         System.out.println( "\tfileName: " + e.getSimpleName());
         for(Pattern p : com.patterns()){
             ComponentRepresentation comRep = new ComponentRepresentation(com.name(), p.kind(), p.role(), p.references());
+            // check if the hashmap contains pattern p, if is does check if the list allready
+            // contains the the component and extend the components references
+            // else just add component
             if(c.containsKey(p.name())){
                 cr =  (ArrayList<ComponentRepresentation>) c.get(p.name());
+                boolean wasThere = false;
+                for (ComponentRepresentation crIns : cr) {
+                    if(crIns.getComponentName().equals(comRep.getComponentName())){
+                        crIns.extendReferences(comRep.getRefreferences());
+                        wasThere = true;
+                    }
+                }
+                if(!wasThere){
+                   cr.add(comRep);
+                }
             } else{
-                cr = new ArrayList<ComponentRepresentation>();
+                cr = new ArrayList<>();
                 c.put(p.name(), cr);
+                cr.add(comRep);
             }
-            cr.add(comRep);
+
+
             String[] refs = p.references();
             System.out.println("\t\t{");
             System.out.println("\t\t\tPattern:");
@@ -156,7 +171,7 @@ public class ComponentProcessor extends AbstractProcessor {
                     }
                 }
             }
-            out.write("open " + pat + "\n");
+            out.write("open " + pat.toLowerCase() + "\n");
             out.write("one sig " + patternName + " extends Configuration { } {\n");
             out.write(contains.toString());
             if(comRe != null){
@@ -167,7 +182,7 @@ public class ComponentProcessor extends AbstractProcessor {
                 }
             }
             out.write("assert conforms {\n");
-            out.write("\t" + pat +"_style["+ patternName+"]\n");
+            out.write("\t" + pat.toLowerCase() +"_style["+ patternName+"]\n");
             out.write("}\n");
             out.write("check conforms\n");
             out.close();

@@ -4,8 +4,11 @@
  */
 package com.apkc.archtype.processors;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+
+
 
 
 /**
@@ -16,13 +19,20 @@ public class ComponentRepresentation {
     private String componentName;
     private String pattern;
     private String role;
-    private String[] references;
+    private ArrayList<String> references;
 
+    /**
+     *
+     * @param componentName
+     * @param pattern
+     * @param role
+     * @param references
+     */
     public ComponentRepresentation(String componentName, String pattern, String role, String[] references) {
         this.componentName = componentName;
         this.pattern = pattern;
         this.role = role;
-        this.references = references;
+        this.references = new ArrayList(Arrays.asList(references));
     }
 
     public String getComponentName() {
@@ -37,7 +47,7 @@ public class ComponentRepresentation {
         return role;
     }
 
-    public String[] getRefreferences() {
+    public ArrayList<String> getRefreferences() {
         return references;
     }
 
@@ -53,17 +63,24 @@ public class ComponentRepresentation {
         this.role = role;
     }
 
-    public void setRefreferences(String[] refreferences) {
-        this.references = refreferences;
+    public void setRefererences(ArrayList<String> refererences) {
+        this.references = refererences;
+    }
+
+    public void extendReferences(ArrayList<String> extraRefs){
+        for (String ref : extraRefs) {
+            if(!references.contains(ref)){
+                references.add(ref);
+            }
+        }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("one sig ").append(componentName).append(" extends ").append(role.toUpperCase()).append(" { } {\n");
-        java.util.List<String> refs = Arrays.asList(references);
+        sb.append("one sig ").append(componentName).append(" extends ").append(role).append(" { } {\n");
         sb.append("\treferences = ");
-        Iterator<String> it = refs.iterator();
+        Iterator<String> it = references.iterator();
                 while( it.hasNext()) {
                     sb.append(it.next());
                     if (it.hasNext()) {
