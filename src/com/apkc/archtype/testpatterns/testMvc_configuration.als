@@ -1,12 +1,9 @@
 open mvc
 one sig testMvc extends Configuration { } {
-	elements = TestController + TestView + TestModel
+	elements = TestController + TestModel
 }
 one sig TestController extends Controller { } {
-	references = TestView + TestModel + TestController
-}
-one sig TestView extends View { } {
-	references = TestController
+	references = TestView + TestModel
 }
 one sig TestModel extends Model { } {
 	references = TestController

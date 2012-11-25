@@ -6,7 +6,7 @@ one sig TestController extends Controller { } {
 	references = TestView + TestModel + TestController
 }
 one sig TestView extends View { } {
-	references = TestController + TestModel
+	references = TestController
 }
 one sig TestModel extends Model { } {
 	references = TestController
@@ -14,7 +14,4 @@ one sig TestModel extends Model { } {
 assert conforms {
 	mvc_style[testMvc]
 }
-assert conformse {
-	mvc_view_style[testMvc]
-}
-check conforms for 16
+check conforms
