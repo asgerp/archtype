@@ -11,11 +11,6 @@ compile the project and then call:
 
 ## Requirements
 
-maven
+all extern jars should be placed in lib/ folder.
 
-* checker framework
 * alloy
-
-install alloy locally:
-
-	mvn install:install-file -DlocalRepositoryPath=deps -DcreateChecksum=true -Dpackaging=jar -Dfile=alloy4.2.jar -DgroupId=org.alloy -DartifactId=alloy -Dversion=4.2
