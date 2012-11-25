@@ -12,8 +12,8 @@ import com.apkc.archtype.quals.Pattern;
  * @author asger
  */
 @Component(
-        name="TestModel",
-        patterns = {@Pattern(name="testMvc", kind = "MVC", role="Model", references={"TestController"})}
+        name="TestView",
+        patterns = {@Pattern(name="testMvc", kind = "MVC", role="View", references={"TestController"})}
         )
 public class ViewTest {
     TestController testControlModel;

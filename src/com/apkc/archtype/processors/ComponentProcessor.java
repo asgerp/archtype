@@ -62,10 +62,9 @@ public class ComponentProcessor extends AbstractProcessor {
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
         String file = generateAlloyModels(components);
-        System.out.println(file);
-        AlloyTest.hej();
-        AlloyTest.passToAlloy(file);
-
+        if(!file.equals("EMPTY")){
+            AlloyTest.passToAlloy(file);
+        }
         return claimed;
     }
     /**
@@ -143,6 +142,9 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param coms
      */
     private String generateAlloyModels(HashMap coms ) {
+        if(coms.isEmpty()){
+            return "EMPTY";
+        }
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter("alloy_models"), 32768);
         } catch (IOException ex) {
@@ -192,7 +194,7 @@ public class ComponentProcessor extends AbstractProcessor {
             out.write("assert conforms {\n");
             out.write("\t" + pat.toLowerCase() +"_style["+ patternName+"]\n");
             out.write("}\n");
-            out.write("check conforms\n");
+            out.write("check conforms for 8\n");
             out.close();
         } catch (IOException ex) {
             Logger.getLogger(ComponentProcessor.class.getName()).log(Level.SEVERE, null, ex);
