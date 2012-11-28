@@ -23,6 +23,7 @@ import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
+import edu.mit.csail.sdg.alloy4viz.VizGUI;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,12 +59,8 @@ public final class AlloyTest {
             ex.printStackTrace();
         }
     }
-
-    public static void hej(){
-        System.out.println("hej");
-    }
     /**
-     * @param filename - the file to pass to alloy for interpreting 
+     * @param filename - the file to pass to alloy for interpreting
      */
     public static void passToAlloy(String filename) {
         // boilerplate alloy4 reporter code
@@ -91,20 +88,32 @@ public final class AlloyTest {
             // Execute the command
             System.out.println("=========== Command " + command + ": ===========");
             A4Solution ans = null;
-            try {
+            try { 
                 ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
             } catch (Err ex) {
                 Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
             }
             // Print the outcome
             System.out.println(ans);
+
+            if(ans.satisfiable()){
+                System.out.println("Checking: " + command + " failed"); 
+            }
             System.out.println("Satisfiable: " + ans.satisfiable());
         }
     }
-    
+
     public static void main(String[] args) throws Err {
         // quick test
-        String filename = "alloy_models/testMvc_configuration.als";
-        passToAlloy(filename);
+        String path = null;
+        try {
+            path = new java.io.File(".").getCanonicalPath();
+        } catch (IOException ex) {
+            Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        VizGUI vg = new VizGUI(true,path+"/result.xml",null);
+        vg.doShowViz();
+        //String filename = "alloy_models/testMvc_configuration.als";
+        //passToAlloy(filename);
     }
 }
