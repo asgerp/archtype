@@ -61,8 +61,8 @@ public class ComponentProcessor extends AbstractProcessor {
 
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
-        String file = generateAlloyModels(components);
-        if(!file.equals("EMPTY")){
+        ArrayList<String> files = generateAlloyModels(components);
+        for(String file: files){
             AlloyTest.passToAlloy(file);
         }
         return claimed;
@@ -141,68 +141,58 @@ public class ComponentProcessor extends AbstractProcessor {
      *
      * @param coms
      */
-    private String generateAlloyModels(HashMap coms ) {
+    private ArrayList<String> generateAlloyModels(HashMap coms ) {
+        ArrayList<String> fileNames = new ArrayList<>();
         if(coms.isEmpty()){
-            return "EMPTY";
-        }
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter("alloy_models"), 32768);
-        } catch (IOException ex) {
-            Logger.getLogger(ComponentProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            return fileNames;
         }
 
-
-
-        Set keySet = coms.entrySet();
-        Iterator i = keySet.iterator();
-        String patternName = "";
-        ArrayList<ComponentRepresentation> comRe = null;
+        Iterator i = coms.entrySet().iterator();
+        // Iterate over each pattern and write alloy model
         while(i.hasNext()){
             Map.Entry next = (Map.Entry) i.next();
-            patternName = (String) next.getKey();
-            comRe = (ArrayList<ComponentRepresentation>) next.getValue();
-        }
-        String generatedFilename = patternName + "_configuration.als";
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(generatedFilename), 32768);
+            String patternName = (String) next.getKey();
+            ArrayList<ComponentRepresentation> comRe = (ArrayList<ComponentRepresentation>) next.getValue();
 
-            String pat = "";
-            StringBuilder contains = new StringBuilder("\telements = ");
-            if(comRe != null){
-                Iterator<ComponentRepresentation> it = comRe.iterator();
-                while( it.hasNext()) {
-                    ComponentRepresentation c = it.next();
-                    contains.append(c.getComponentName());
-                    if (it.hasNext()) {
-                        pat = c.getPattern();
-                        contains.append(" + ");
-                    } else{
-                        contains.append("\n}\n");
+            String generatedFilename = patternName + "_configuration.als";
+            try {
+                BufferedWriter out = new BufferedWriter(new FileWriter(generatedFilename), 32768);
+
+                String pat = "";
+                StringBuilder contains = new StringBuilder("\telements = ");
+                if(comRe != null){
+                    Iterator<ComponentRepresentation> it = comRe.iterator();
+                    while( it.hasNext()) {
+                        ComponentRepresentation c = it.next();
+                        contains.append(c.getComponentName());
+                        if (it.hasNext()) {
+                            pat = c.getPattern();
+                            contains.append(" + ");
+                        } else{
+                            contains.append("\n}\n");
+                        }
                     }
                 }
-            }
-            out.write("open " + pat.toLowerCase() + "\n");
-            out.write("one sig " + patternName + " extends Configuration { } {\n");
-            out.write(contains.toString());
-            if(comRe != null){
-                Iterator<ComponentRepresentation> ite = comRe.iterator();
-                while( ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    out.write(c.toString());
+                out.write("open " + pat.toLowerCase() + "\n");
+                out.write("one sig " + patternName + " extends Configuration { } {\n");
+                out.write(contains.toString());
+                if(comRe != null){
+                    Iterator<ComponentRepresentation> ite = comRe.iterator();
+                    while( ite.hasNext()) {
+                        ComponentRepresentation c = ite.next();
+                        out.write(c.toString());
+                    }
                 }
+                out.write("assert conforms {\n");
+                out.write("\t" + pat.toLowerCase() +"_style["+ patternName+"]\n");
+                out.write("}\n");
+                out.write("check conforms for 8\n");
+                out.close();
+                fileNames.add(generatedFilename);
+            } catch (IOException ex) {
+                Logger.getLogger(ComponentProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            out.write("assert conforms {\n");
-            out.write("\t" + pat.toLowerCase() +"_style["+ patternName+"]\n");
-            out.write("}\n");
-            out.write("check conforms for 8\n");
-            out.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ComponentProcessor.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return generatedFilename;
-    }
-
-    class AlloyModel{
-
+        return fileNames;
     }
 }

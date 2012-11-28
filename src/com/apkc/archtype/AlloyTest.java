@@ -66,7 +66,6 @@ public final class AlloyTest {
      * @param filename - the file to pass to alloy for interpreting 
      */
     public static void passToAlloy(String filename) {
-        System.out.println("here");
         // boilerplate alloy4 reporter code
         A4Reporter rep = new A4Reporter() {
             // here we choose to display each "warning" by printing it to System.out
