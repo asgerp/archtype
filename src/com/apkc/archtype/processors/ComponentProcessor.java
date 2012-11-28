@@ -183,10 +183,9 @@ public class ComponentProcessor extends AbstractProcessor {
                         out.write(c.toString());
                     }
                 }
-                out.write("assert conforms {\n");
-                out.write("\t" + pat.toLowerCase() +"_style["+ patternName+"]\n");
-                out.write("}\n");
-                out.write("check conforms for 8\n");
+                writeAsserts(out,pat,patternName);
+                writeCommands(out, pat);
+                
                 out.close();
                 fileNames.add(generatedFilename);
             } catch (IOException ex) {
@@ -194,5 +193,28 @@ public class ComponentProcessor extends AbstractProcessor {
             }
         }
         return fileNames;
+    }
+
+    /**
+     * Should analyze which pattern is used and write the appropriate commands for that pattern, using the writer.
+     * @param bw
+     * @param pattern
+     */
+    private void writeCommands(BufferedWriter bw, String pattern) throws IOException{
+        if("mvc".equals(pattern.toLowerCase())){
+            bw.write("check models for 8\n");
+            bw.write("check views for 8\n");
+        }
+    }
+
+    private void writeAsserts(BufferedWriter bw, String pattern, String patternName) throws IOException{
+        if("mvc".equals(pattern.toLowerCase())){
+            bw.write("assert models {\n");
+            bw.write("\t" + pattern.toLowerCase() + "_view" +"_style["+ patternName+"]\n");
+            bw.write("}\n");
+            bw.write("assert views {\n");
+            bw.write("\t" + pattern.toLowerCase() + "_model" +"_style["+ patternName+"]\n");
+            bw.write("}\n");
+        }
     }
 }
