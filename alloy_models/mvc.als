@@ -15,6 +15,6 @@ pred mvc_view_style [c: Configuration] {
 	all view: c.elements & View | all ref: view.references | ref not in Model
 }
 pred mvc_style [c: Configuration]{
-	mvc_view_style[c] && mvc_model_style[c]
+	 mvc_model_style[c] mvc_view_style[c]
 }
 
