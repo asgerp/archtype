@@ -47,7 +47,6 @@ public class ComponentProcessor extends AbstractProcessor {
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
-        messager.printMessage(Diagnostic.Kind.NOTE, "Starting processor");
         HashMap components = new HashMap();
         boolean claimed = false;
         for (TypeElement te: annotations) {
@@ -67,6 +66,27 @@ public class ComponentProcessor extends AbstractProcessor {
         }
         return claimed;
     }
+
+    private void debugComponent(Component com, Element e){
+        System.out.println("{");
+        System.out.println("Component: ");
+        System.out.println("\tname: " + com.name());
+        System.out.println( "\tfileName: " + e.getSimpleName());
+        for(Pattern p: com.patterns()){
+            System.out.println("\t\t{");
+            System.out.println("\t\t\tPattern:");
+            System.out.println("\t\t\t\tname: " + p.name());
+            System.out.println("\t\t\t\tkind: " + p.kind());
+            System.out.println("\t\t\t\trole: " + p.role());
+            System.out.println("\t\t\t\trefs: {" );
+            for(String ref: p.references()){
+                System.out.println("\t\t\t\t\tref: " + ref + " ");
+            }
+            System.out.println("\t\t\t\t}");
+            System.out.println("\t\t}");
+        }
+        System.out.println("}");
+    }
     /**
      *
      * @param e - the element currently being worked on
@@ -80,10 +100,6 @@ public class ComponentProcessor extends AbstractProcessor {
         List<? extends Element> enclosedElements = e.getEnclosedElements();
 
         ArrayList<ComponentRepresentation> cr;
-        System.out.println("{");
-        System.out.println("Component: ");
-        System.out.println("\tname: " + com.name());
-        System.out.println( "\tfileName: " + e.getSimpleName());
         for(Pattern p : com.patterns()){
             ComponentRepresentation comRep = new ComponentRepresentation(com.name(), p.kind(), p.role(), p.references());
             // check if the hashmap contains pattern p, if is does check if the list allready
@@ -106,53 +122,25 @@ public class ComponentProcessor extends AbstractProcessor {
                 c.put(p.name(), cr);
                 cr.add(comRep);
             }
-
-
-            String[] refs = p.references();
-            System.out.println("\t\t{");
-            System.out.println("\t\t\tPattern:");
-            System.out.println("\t\t\t\tname: " + p.name());
-            System.out.println("\t\t\t\tkind: " + p.kind());
-            System.out.println("\t\t\t\trole: " + p.role());
-            System.out.println("\t\t\t\trefs: {" );
-            for(String ref: p.references()){
-                System.out.println("\t\t\t\t\tref: " + ref + " ");
-            }
-            /*for(Element ee: enclosedElements){
-             * System.out.println(ee.+ " " + ee.asType().toString());
-             * if(ee.getKind().isClass()){
-             *
-             * String actualRef = ee.asType().toString();
-             * System.out.println(actualRef);
-             * actualRef = actualRef.substring(actualRef.lastIndexOf("."));
-             * if(Arrays.asList(refs).contains(actualRef)){
-             * System.out.println("\t\t\t\t\t"+actualRef);
-             * }else{
-             * m.printMessage(Diagnostic.Kind.ERROR, "illegal reference", e);
-             * }
-             * }
-             * }*/
-            System.out.println("\t\t\t\t}");
-            System.out.println("\t\t}");
         }
-        System.out.println("}");
+
     }
     /**
      *
-     * @param coms
+     * @param components
      */
-    private ArrayList<String> generateAlloyModels(HashMap coms ) {
+    private ArrayList<String> generateAlloyModels(HashMap components ) {
         ArrayList<String> fileNames = new ArrayList<>();
-        if(coms.isEmpty()){
+        if(components.isEmpty()){
             return fileNames;
         }
 
-        Iterator i = coms.entrySet().iterator();
+        Iterator componentIterator = components.entrySet().iterator();
         // Iterate over each pattern and write alloy model
-        while(i.hasNext()){
-            Map.Entry next = (Map.Entry) i.next();
+        while(componentIterator.hasNext()){
+            Map.Entry next = (Map.Entry) componentIterator.next();
             String patternName = (String) next.getKey();
-            ArrayList<ComponentRepresentation> comRe = (ArrayList<ComponentRepresentation>) next.getValue();
+            ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
 
             String generatedFilename = patternName + "_configuration.als";
             try {
@@ -160,8 +148,8 @@ public class ComponentProcessor extends AbstractProcessor {
 
                 String pat = "";
                 StringBuilder contains = new StringBuilder("\telements = ");
-                if(comRe != null){
-                    Iterator<ComponentRepresentation> it = comRe.iterator();
+                if(componentRepresentation != null){
+                    Iterator<ComponentRepresentation> it = componentRepresentation.iterator();
                     while( it.hasNext()) {
                         ComponentRepresentation c = it.next();
                         contains.append(c.getComponentName());
@@ -176,8 +164,8 @@ public class ComponentProcessor extends AbstractProcessor {
                 out.write("open " + pat.toLowerCase() + "\n");
                 out.write("one sig " + patternName + " extends Configuration { } {\n");
                 out.write(contains.toString());
-                if(comRe != null){
-                    Iterator<ComponentRepresentation> ite = comRe.iterator();
+                if(componentRepresentation != null){
+                    Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
                     while( ite.hasNext()) {
                         ComponentRepresentation c = ite.next();
                         out.write(c.toString());
@@ -185,7 +173,7 @@ public class ComponentProcessor extends AbstractProcessor {
                 }
                 writeAsserts(out,pat,patternName);
                 writeCommands(out, pat);
-                
+
                 out.close();
                 fileNames.add(generatedFilename);
             } catch (IOException ex) {

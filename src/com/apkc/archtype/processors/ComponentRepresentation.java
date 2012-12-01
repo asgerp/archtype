@@ -32,7 +32,7 @@ public class ComponentRepresentation {
         this.componentName = componentName;
         this.pattern = pattern;
         this.role = role;
-        this.references = new ArrayList(Arrays.asList(references));
+        this.references = new ArrayList<>(Arrays.asList(references));
     }
 
     public String getComponentName() {
