@@ -94,10 +94,11 @@ public final class AlloyTest {
                 Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
             }
             // Print the outcome
-            System.out.println(ans);
+            
 
             if(ans.satisfiable()){
-                System.out.println("Checking: " + command + " failed"); 
+                System.out.println("Checking: " + command + " failed");
+
             }
             System.out.println("Satisfiable: " + ans.satisfiable());
         }
