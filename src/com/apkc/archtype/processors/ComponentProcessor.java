@@ -195,8 +195,8 @@ public class ComponentProcessor extends AbstractProcessor {
      */
     private void writeCommands(BufferedWriter bw, String pattern) throws IOException{
         if("mvc".equals(pattern.toLowerCase())){
-            bw.write("check models for 8\n");
-            bw.write("check views for 8\n");
+            bw.write("check model for 8\n");
+            bw.write("check view for 8\n");
         }
     }
     /**
