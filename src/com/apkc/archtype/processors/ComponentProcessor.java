@@ -62,36 +62,13 @@ public class ComponentProcessor extends AbstractProcessor {
         //processor in generateOptionProcessor method
         ArrayList<String> files = generateAlloyModels(components);
         for(String file: files){
+            // should return a data structure that encapsulates whether the check passed or not and a message
             AlloyTest.passToAlloy(file);
         }
         return claimed;
     }
 
-    /**
-     * 
-     * @param com
-     * @param e
-     */
-    private void debugComponent(Component com, Element e){
-        System.out.println("{");
-        System.out.println("Component: ");
-        System.out.println("\tname: " + com.name());
-        System.out.println( "\tfileName: " + e.getSimpleName());
-        for(Pattern p: com.patterns()){
-            System.out.println("\t\t{");
-            System.out.println("\t\t\tPattern:");
-            System.out.println("\t\t\t\tname: " + p.name());
-            System.out.println("\t\t\t\tkind: " + p.kind());
-            System.out.println("\t\t\t\trole: " + p.role());
-            System.out.println("\t\t\t\trefs: {" );
-            for(String ref: p.references()){
-                System.out.println("\t\t\t\t\tref: " + ref + " ");
-            }
-            System.out.println("\t\t\t\t}");
-            System.out.println("\t\t}");
-        }
-        System.out.println("}");
-    }
+    
     /**
      *
      * @param e - the element currently being worked on
@@ -112,13 +89,14 @@ public class ComponentProcessor extends AbstractProcessor {
             // else just add component
             if(c.containsKey(p.name())){
                 cr =  (ArrayList<ComponentRepresentation>) c.get(p.name());
-                boolean wasThere = false;
+                boolean wasThere = false;/**
                 for (ComponentRepresentation crIns : cr) {
                     if(crIns.getComponentName().equals(comRep.getComponentName())){
                         crIns.extendReferences(comRep.getRefreferences());
                         wasThere = true;
                     }
                 }
+                * */
                 if(!wasThere){
                     cr.add(comRep);
                 }
@@ -175,9 +153,23 @@ public class ComponentProcessor extends AbstractProcessor {
                         ComponentRepresentation c = ite.next();
                         out.write(c.toString());
                     }
+                    ite = componentRepresentation.iterator();
+                    while( ite.hasNext()) {
+                        ComponentRepresentation c = ite.next();
+                        writeAsserts(out,pat,patternName,c.getRole(), c.getComponentName());
+                        
+                    }
+                    ite = componentRepresentation.iterator();
+                    while( ite.hasNext()) {
+                        ComponentRepresentation c = ite.next();
+                        writeCommands(out, pat, c.getComponentName());
+
+                    }
                 }
-                writeAsserts(out,pat,patternName);
-                writeCommands(out, pat);
+                // loop for asserts
+//                writeAsserts(out,pat,patternName);
+                // loop for commands
+  //              writeCommands(out, pat);
 
                 out.close();
                 fileNames.add(generatedFilename);
@@ -193,11 +185,9 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param bw
      * @param pattern
      */
-    private void writeCommands(BufferedWriter bw, String pattern) throws IOException{
-        if("mvc".equals(pattern.toLowerCase())){
-            bw.write("check model for 8\n");
-            bw.write("check view for 8\n");
-        }
+    // TODO run through all components in a pattern and write individual commands for each component
+    private void writeCommands(BufferedWriter bw, String pattern, String componentName) throws IOException{
+            bw.write("check " + componentName.toLowerCase() +" for 8\n");
     }
     /**
      *
@@ -206,14 +196,36 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param patternName
      * @throws IOException
      */
-    private void writeAsserts(BufferedWriter bw, String pattern, String patternName) throws IOException{
-        if("mvc".equals(pattern.toLowerCase())){
-            bw.write("assert view {\n");
-            bw.write("\t" + pattern.toLowerCase() + "_view" +"_style["+ patternName+"]\n");
-            bw.write("}\n");
-            bw.write("assert model {\n");
-            bw.write("\t" + pattern.toLowerCase() + "_model" +"_style["+ patternName+"]\n");
-            bw.write("}\n");
+    // TODO run through all components in a pattern and write individual checks for each component
+    private void writeAsserts(BufferedWriter bw, String pattern, String patternName, String role, String componentName) throws IOException{
+        bw.write("assert "+ componentName.toLowerCase()+" {\n");
+        bw.write("\t" + pattern.toLowerCase() + "_"+ role.toLowerCase()+"_style["+ patternName+"]\n");
+        bw.write("}\n");
+    }
+
+    /**
+     *
+     * @param com
+     * @param e
+     */
+    private void debugComponent(Component com, Element e){
+        System.out.println("{");
+        System.out.println("Component: ");
+        System.out.println("\tname: " + com.name());
+        System.out.println( "\tfileName: " + e.getSimpleName());
+        for(Pattern p: com.patterns()){
+            System.out.println("\t\t{");
+            System.out.println("\t\t\tPattern:");
+            System.out.println("\t\t\t\tname: " + p.name());
+            System.out.println("\t\t\t\tkind: " + p.kind());
+            System.out.println("\t\t\t\trole: " + p.role());
+            System.out.println("\t\t\t\trefs: {" );
+            for(String ref: p.references()){
+                System.out.println("\t\t\t\t\tref: " + ref + " ");
+            }
+            System.out.println("\t\t\t\t}");
+            System.out.println("\t\t}");
         }
+        System.out.println("}");
     }
 }

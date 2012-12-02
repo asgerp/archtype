@@ -39,27 +39,6 @@ public final class AlloyTest {
     }
     
     /**
-     * writes a string to a file, overwrites preexisting files
-     * @param content - file content
-     * @param filename - name of file to write to
-     */
-    private void writeToFile(String content,String filename) {
-        try {
-            // delete preexisting file
-            File file = new File(filename);
-            if (file.exists()) {
-                file.delete();
-            }
-            // output using FileWriter
-            FileWriter fstream = new FileWriter(filename);
-            BufferedWriter out = new BufferedWriter(fstream);
-            out.write(content);
-            out.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-    /**
      * @param filename - the file to pass to alloy for interpreting
      */
     public static void passToAlloy(String filename) {
@@ -97,10 +76,10 @@ public final class AlloyTest {
             
 
             if(ans.satisfiable()){
-                System.out.println("Checking: " + command + " failed");
+                System.out.println(command + " failed");
 
             }
-            System.out.println("Satisfiable: " + ans.satisfiable());
+            System.out.println("Error: " + ans.satisfiable());
         }
     }
 
