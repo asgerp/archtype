@@ -67,6 +67,11 @@ public class ComponentProcessor extends AbstractProcessor {
         return claimed;
     }
 
+    /**
+     * 
+     * @param com
+     * @param e
+     */
     private void debugComponent(Component com, Element e){
         System.out.println("{");
         System.out.println("Component: ");
@@ -194,13 +199,19 @@ public class ComponentProcessor extends AbstractProcessor {
             bw.write("check views for 8\n");
         }
     }
-
+    /**
+     *
+     * @param bw
+     * @param pattern
+     * @param patternName
+     * @throws IOException
+     */
     private void writeAsserts(BufferedWriter bw, String pattern, String patternName) throws IOException{
         if("mvc".equals(pattern.toLowerCase())){
-            bw.write("assert models {\n");
+            bw.write("assert view {\n");
             bw.write("\t" + pattern.toLowerCase() + "_view" +"_style["+ patternName+"]\n");
             bw.write("}\n");
-            bw.write("assert views {\n");
+            bw.write("assert model {\n");
             bw.write("\t" + pattern.toLowerCase() + "_model" +"_style["+ patternName+"]\n");
             bw.write("}\n");
         }
