@@ -63,6 +63,8 @@ public final class AlloyTest {
         // Choose some default options for how you want to execute the commands
         A4Options options = new A4Options();
         options.solver = A4Options.SatSolver.SAT4J;
+        // FIXME: figure out folders and shit
+        //options.tempDirectory
         for (Command command : world.getAllCommands()) {
             // Execute the command
             System.out.println("=========== Command " + command + ": ===========");
