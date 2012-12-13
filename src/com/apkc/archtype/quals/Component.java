@@ -13,7 +13,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface Component {
-    public String name();
     Pattern[] patterns() default{};
 
 }

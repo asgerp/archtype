@@ -225,7 +225,7 @@ public class ComponentProcessor extends AbstractProcessor {
     private void debugComponent(Component com, Element e){
         System.out.println("{");
         System.out.println("Component: ");
-        System.out.println("\tname: " + com.name());
+        System.out.println("\tname: " + e.getSimpleName());
         System.out.println( "\tfileName: " + e.getSimpleName());
         for(Pattern p: com.patterns()){
             System.out.println("\t\t{");
@@ -234,9 +234,6 @@ public class ComponentProcessor extends AbstractProcessor {
             System.out.println("\t\t\t\tkind: " + p.kind());
             System.out.println("\t\t\t\trole: " + p.role());
             System.out.println("\t\t\t\trefs: {" );
-            for(String ref: p.references()){
-                System.out.println("\t\t\t\t\tref: " + ref + " ");
-            }
             System.out.println("\t\t\t\t}");
             System.out.println("\t\t}");
         }

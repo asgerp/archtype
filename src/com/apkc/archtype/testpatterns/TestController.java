@@ -10,8 +10,7 @@ import com.apkc.archtype.quals.*;
  * @author asger
  */
 @Component(
-        name="TestController",
-        patterns = {@Pattern(name="testMvc",kind = "MVC", role="Controller", references={"ViewTest", "TestModel"})}
+        patterns = {@Pattern(name="testMvc",kind = "MVC", role="Controller")}
         )
 public class TestController {
     TestController testControlControl;
