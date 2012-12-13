@@ -9,7 +9,6 @@ import java.lang.annotation.Annotation;
  *
  */
 @Component(
-        name = "TestAnno",
         patterns = {@Pattern(kind = "MVC",name="tes", role="Model"), @Pattern(name="tes",kind = "ClientServer", role= "client")}
         )
 public class App 
@@ -22,7 +21,6 @@ public class App
       for(Annotation annotation: anns){
           if(annotation instanceof Component){
               Component compo = (Component) annotation;
-              System.out.println("name: " + compo.name());
               for(Pattern p : compo.patterns()){
                 System.out.println("pattern name: " + p.name());
                 System.out.println("pattern role: " + p.role());
