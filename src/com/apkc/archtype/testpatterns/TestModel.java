@@ -13,10 +13,11 @@ import com.apkc.archtype.quals.Pattern;
  */
 @Component(
         name="TestModel",
-        patterns = {@Pattern(name="testMvc", kind = "MVC", role="Model", references={"TestController","TestView"})}
+        patterns = {@Pattern(name="testMvc", kind = "MVC", role="Model", references={"TestController","ViewTest"})}
         )
 public class TestModel {
-    TestController testControlModel;
+    TestController3 testControlModel;
+    ViewTest viewTest;
 
     public TestModel() {
     }

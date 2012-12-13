@@ -1,23 +1,23 @@
 open mvc
 one sig testMvc extends Configuration { } {
-	elements = TestController + TestView + TestModel + TestController3
+	elements = TestController + ViewTest + TestModel + TestController3
 }
 one sig TestController extends Controller { } {
-	references = TestView + TestModel
+	references = TestController + TestModel
 }
-one sig TestView extends View { } {
+one sig ViewTest extends View { } {
 	references = TestController
 }
 one sig TestModel extends Model { } {
-	references = TestController + TestView
+	references = ViewTest + TestController3
 }
 one sig TestController3 extends Controller { } {
-	references = TestView + TestController
+	references = TestController + TestModel
 }
 assert testcontroller {
 	mvc_controller_style[testMvc]
 }
-assert testview {
+assert viewtest {
 	mvc_view_style[testMvc]
 }
 assert testmodel {
@@ -27,6 +27,6 @@ assert testcontroller3 {
 	mvc_controller_style[testMvc]
 }
 check testcontroller for 8
-check testview for 8
+check viewtest for 8
 check testmodel for 8
 check testcontroller3 for 8

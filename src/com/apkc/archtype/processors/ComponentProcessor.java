@@ -48,18 +48,22 @@ public class ComponentProcessor extends AbstractProcessor {
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
         HashMap components = new HashMap();
+        HashMap references = new HashMap();
+        ArrayList<String> annotatedClasses = new ArrayList<>();
         boolean claimed = false;
         for (TypeElement te: annotations) {
 
             //Get the members that are annotated with Option
             for (Element e: roundEnv.getElementsAnnotatedWith(te)){
                 claimed = true;
-                processAnnotation(e, messager, components);
+                annotatedClasses.add(e.getSimpleName().toString());
+                processAnnotation(e, messager, components, references);
             }
         }
 
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
+        setUpReferences(annotatedClasses, references, components);
         ArrayList<String> files = generateAlloyModels(components);
         for(String file: files){
             // should return a data structure that encapsulates whether the check passed or not and a message
@@ -68,41 +72,51 @@ public class ComponentProcessor extends AbstractProcessor {
         return claimed;
     }
 
-    
+
     /**
      *
      * @param e - the element currently being worked on
      * @param m - the messager used for errors, notes and the like
-     * @param c - a hashmap containing all components, stored under the pattern(s) they are part of
+     * @param components - a hashmap containing all components, stored under the pattern(s) they are part of
      */
-    private void processAnnotation(Element e, Messager m, HashMap c){
+    private void processAnnotation(Element e, Messager m, HashMap components, HashMap refs){
         Component com = e.getAnnotation(Component.class);
 
         // TODO do some analisys of enclosed contra p.references, do they
         List<? extends Element> enclosedElements = e.getEnclosedElements();
+        ArrayList<String> stringRefs = new ArrayList<>();
 
+        System.out.println(e.getSimpleName() + " Has ");
+        for(Element el: enclosedElements){
+            String type = el.asType().toString();
+            if(type.contains(".")){
+                System.out.println("\t" + type.substring(type.lastIndexOf(".") + 1));
+                stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+            }
+        }
+        refs.put(e.getSimpleName().toString(), stringRefs);
         ArrayList<ComponentRepresentation> cr;
         for(Pattern p : com.patterns()){
-            ComponentRepresentation comRep = new ComponentRepresentation(com.name(), p.kind(), p.role(), p.references());
+            ComponentRepresentation comRep = new ComponentRepresentation(e.getSimpleName().toString(), p.kind(), p.role());
             // check if the hashmap contains pattern p, if is does check if the list allready
             // contains the the component and extend the components references
             // else just add component
-            if(c.containsKey(p.name())){
-                cr =  (ArrayList<ComponentRepresentation>) c.get(p.name());
+            if(components.containsKey(p.name())){
+                cr =  (ArrayList<ComponentRepresentation>) components.get(p.name());
                 boolean wasThere = false;/**
-                for (ComponentRepresentation crIns : cr) {
-                    if(crIns.getComponentName().equals(comRep.getComponentName())){
-                        crIns.extendReferences(comRep.getRefreferences());
-                        wasThere = true;
-                    }
-                }
-                * */
+                 * for (ComponentRepresentation crIns : cr) {
+                 * if(crIns.getComponentName().equals(comRep.getComponentName())){
+                 * crIns.extendReferences(comRep.getRefreferences());
+                 * wasThere = true;
+                 * }
+                 * }
+                 * */
                 if(!wasThere){
                     cr.add(comRep);
                 }
             } else{
                 cr = new ArrayList<>();
-                c.put(p.name(), cr);
+                components.put(p.name(), cr);
                 cr.add(comRep);
             }
         }
@@ -157,7 +171,7 @@ public class ComponentProcessor extends AbstractProcessor {
                     while( ite.hasNext()) {
                         ComponentRepresentation c = ite.next();
                         writeAsserts(out,pat,patternName,c.getRole(), c.getComponentName());
-                        
+
                     }
                     ite = componentRepresentation.iterator();
                     while( ite.hasNext()) {
@@ -167,9 +181,9 @@ public class ComponentProcessor extends AbstractProcessor {
                     }
                 }
                 // loop for asserts
-//                writeAsserts(out,pat,patternName);
+                //                writeAsserts(out,pat,patternName);
                 // loop for commands
-  //              writeCommands(out, pat);
+                //              writeCommands(out, pat);
 
                 out.close();
                 fileNames.add(generatedFilename);
@@ -187,7 +201,7 @@ public class ComponentProcessor extends AbstractProcessor {
      */
     // TODO run through all components in a pattern and write individual commands for each component
     private void writeCommands(BufferedWriter bw, String pattern, String componentName) throws IOException{
-            bw.write("check " + componentName.toLowerCase() +" for 8\n");
+        bw.write("check " + componentName.toLowerCase() +" for 8\n");
     }
     /**
      *
@@ -227,5 +241,49 @@ public class ComponentProcessor extends AbstractProcessor {
             System.out.println("\t\t}");
         }
         System.out.println("}");
+    }
+    /**
+     *
+     * @param annotatedClasses
+     * @param references
+     * @param components
+     */
+    private void setUpReferences(ArrayList<String> annotatedClasses, HashMap references, HashMap components) {
+
+        Iterator iterator = references.entrySet().iterator();
+        // each annotedclass
+        while(iterator.hasNext()){
+            // annotated class
+            Map.Entry next = (Map.Entry) iterator.next();
+            String anClass = (String) next.getKey();
+            Iterator compIt = components.entrySet().iterator();
+            ArrayList<String> value = (ArrayList<String>) next.getValue();
+            // each pattern
+            while(compIt.hasNext()){
+                Map.Entry pattern = (Map.Entry) compIt.next();
+
+                ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) pattern.getValue();
+                Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
+                boolean inPattern = false;
+                ComponentRepresentation anClassCr = null;
+                // is annotated class in pattern
+                // each class in pattern
+                while( ite.hasNext()) {
+                    ComponentRepresentation c = ite.next();
+                    if (c.getComponentName().equals(anClass)){
+                        inPattern = true;
+                        anClassCr = c;
+                    }
+                }
+                ite = componentRepresentation.iterator();
+                // is 
+                while(ite.hasNext()){
+                    ComponentRepresentation c = ite.next();
+                    if(value.contains(c.getComponentName()) && inPattern){
+                        anClassCr.extendReferences(c.getComponentName());
+                    }
+                }
+            }
+        }
     }
 }

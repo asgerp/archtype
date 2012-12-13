@@ -28,11 +28,11 @@ public class ComponentRepresentation {
      * @param role
      * @param references
      */
-    public ComponentRepresentation(String componentName, String pattern, String role, String[] references) {
+    public ComponentRepresentation(String componentName, String pattern, String role) {
         this.componentName = componentName;
         this.pattern = pattern;
         this.role = role;
-        this.references = new ArrayList<>(Arrays.asList(references));
+        this.references = new ArrayList<>();
     }
 
     public String getComponentName() {
@@ -74,6 +74,11 @@ public class ComponentRepresentation {
             }
         }
     }
+    public void extendReferences(String extraRef){
+        if(!references.contains(extraRef)){
+            references.add(extraRef);
+        }
+    }
 
     @Override
     public String toString() {
@@ -81,14 +86,14 @@ public class ComponentRepresentation {
         sb.append("one sig ").append(componentName).append(" extends ").append(role).append(" { } {\n");
         sb.append("\treferences = ");
         Iterator<String> it = references.iterator();
-                while( it.hasNext()) {
-                    sb.append(it.next());
-                    if (it.hasNext()) {
-                        sb.append(" + ");
-                    } else{
-                        sb.append("\n");
-                    }
-                }
+        while( it.hasNext()) {
+            sb.append(it.next());
+            if (it.hasNext()) {
+                sb.append(" + ");
+            } else{
+                sb.append("\n");
+            }
+        }
         sb.append("}\n");
         return sb.toString();
         //return "ComponentRepresentation{" + "componentName=" + componentName + ", pattern=" + pattern + ", role=" + role + ", refreferences=" + references + '}';
