@@ -6,32 +6,24 @@ abstract sig Configuration { elements: set Element }
 abstract sig Element { references: set Element }
 
 // Layered style
- sig Layer extends Element {
-	layer_no: one Int
- }
+sig LayerDATA extends Element { }
 
-// A layer can not reference it self
-fact{ all l: Layer | l not in l.references}
+sig LayerBL extends Element { }
 
-// layer numbering must be non zero
-fact{all l: Layer | l.layer_no > 0}
+sig LayerPRESENT extends Element { }
 
-// a layer must only reference layers directly above and below
-fact{all l:Layer | all refs: l.references | all l_no : refs.layer_no |
-	minus[l_no,l.layer_no] = 1  or
-	minus[l_no,l.layer_no] = 0 or
-	minus[l_no,l.layer_no] = -1
+
+
+pred layered_layerdata_style [c: Configuration] {
+	all m: c.elements & LayerDATA | all r: m.references | r not in LayerPRESENT
+}
+pred layered_layerpresent_style [c: Configuration] {
+	all view: c.elements & LayerPRESENT | all ref: view.references | ref not in LayerDATA
+}
+pred layered_layerbl_style [c: Configuration] {
+	
+}
+pred layered_style [c: Configuration]{
+	layered_layerpresent_style[c] layered_layerdata_style[c]
 }
 
-
-pred layered_style [c: Configuration] {
-	all l: c.elements & Layer | all refs: l.references |
-	all l_no : refs.layer_no |
-	minus[l_no,l.layer_no] = 1  or
-	minus[l_no,l.layer_no] = 0 or
-	minus[l_no,l.layer_no] = -1
-	//(refs.layer_no ) = l.layer_no +1
-
-}
-
-run layered_style for 1 Configuration, 6 Layer
