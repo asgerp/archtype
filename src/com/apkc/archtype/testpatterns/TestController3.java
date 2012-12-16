@@ -21,4 +21,8 @@ public class TestController3 {
     public TestController3() {
     }
 
+    TestController getController(){
+        return testControlControl;
+    }
+
 }

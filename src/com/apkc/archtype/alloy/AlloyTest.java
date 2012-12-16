@@ -12,7 +12,7 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.apkc.archtype;
+package com.apkc.archtype.alloy;
 
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
@@ -80,8 +80,9 @@ public final class AlloyTest {
             if(ans.satisfiable()){
                 System.out.println(command + " failed");
 
+            } else {
+                System.out.println(command + " passed");
             }
-            System.out.println("Error: " + ans.satisfiable());
         }
     }
 

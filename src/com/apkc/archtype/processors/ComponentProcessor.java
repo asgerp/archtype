@@ -4,7 +4,7 @@
  */
 package com.apkc.archtype.processors;
 
-import com.apkc.archtype.AlloyTest;
+import com.apkc.archtype.alloy.AlloyTest;
 import com.apkc.archtype.quals.Component;
 import com.apkc.archtype.quals.Pattern;
 import java.io.BufferedWriter;
@@ -85,13 +85,21 @@ public class ComponentProcessor extends AbstractProcessor {
         // TODO do some analisys of enclosed contra p.references, do they
         List<? extends Element> enclosedElements = e.getEnclosedElements();
         ArrayList<String> stringRefs = new ArrayList<>();
-
-        System.out.println(e.getSimpleName() + " Has ");
         for(Element el: enclosedElements){
             String type = el.asType().toString();
             if(type.contains(".")){
-                System.out.println("\t" + type.substring(type.lastIndexOf(".") + 1));
-                stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+                // is return value
+                if(type.contains("()")){
+                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+                } else 
+                    // is parameter
+                    if (type.contains(")")){
+                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") +1));
+                }
+                // is field 
+                else{
+                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+                }
             }
         }
         refs.put(e.getSimpleName().toString(), stringRefs);
@@ -273,7 +281,7 @@ public class ComponentProcessor extends AbstractProcessor {
                     }
                 }
                 ite = componentRepresentation.iterator();
-                // is 
+                // is
                 while(ite.hasNext()){
                     ComponentRepresentation c = ite.next();
                     if(value.contains(c.getComponentName()) && inPattern){

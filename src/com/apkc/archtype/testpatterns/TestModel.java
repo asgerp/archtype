@@ -16,10 +16,25 @@ import com.apkc.archtype.quals.Pattern;
         )
 public class TestModel {
     TestController3 testControlModel;
-    ViewTest viewTest;
+    
 
     public TestModel() {
     }
 
-    
+    int getAViewTest(ViewTest vt){
+        vt.getClass();
+       return 1;
+    }
+
+    ViewTest getView(){
+        return new ViewTest();
+    }
+
+    /**
+     * Cannot catch this :(
+     */
+    void someMethodWithView(){
+        ViewTest vt = new ViewTest();
+    }
+
 }
