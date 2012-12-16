@@ -147,9 +147,9 @@ public class ComponentProcessor extends AbstractProcessor {
             String patternName = (String) next.getKey();
             ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
 
-            String generatedFilename = patternName + "_configuration.als";
+            
             try {
-                BufferedWriter out = new BufferedWriter(new FileWriter(generatedFilename), 32768);
+                
 
                 String pat = "";
                 StringBuilder contains = new StringBuilder("\telements = ");
@@ -166,6 +166,8 @@ public class ComponentProcessor extends AbstractProcessor {
                         }
                     }
                 }
+                String generatedFilename = pat + "_" + patternName + "_configuration.als";
+                BufferedWriter out = new BufferedWriter(new FileWriter(generatedFilename), 32768);
                 out.write("open " + pat.toLowerCase() + "\n");
                 out.write("one sig " + patternName + " extends Configuration { } {\n");
                 out.write(contains.toString());
@@ -207,7 +209,6 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param bw
      * @param pattern
      */
-    // TODO run through all components in a pattern and write individual commands for each component
     private void writeCommands(BufferedWriter bw, String pattern, String componentName) throws IOException{
         bw.write("check " + componentName.toLowerCase() +" for 8\n");
     }
@@ -218,7 +219,6 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param patternName
      * @throws IOException
      */
-    // TODO run through all components in a pattern and write individual checks for each component
     private void writeAsserts(BufferedWriter bw, String pattern, String patternName, String role, String componentName) throws IOException{
         bw.write("assert "+ componentName.toLowerCase()+" {\n");
         bw.write("\t" + pattern.toLowerCase() + "_"+ role.toLowerCase()+"_style["+ patternName+"]\n");

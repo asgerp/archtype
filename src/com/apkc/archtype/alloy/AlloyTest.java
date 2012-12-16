@@ -32,16 +32,20 @@ import java.util.logging.Logger;
  * This class demonstrates how to access Alloy4 via the API.
  */
 public final class AlloyTest {
-    
+
     // patterns we'll be supporting, extend as necessary
     private enum Pattern {
         MVC, NOTMVC
     }
-    
+
     /**
      * @param filename - the file to pass to alloy for interpreting
      */
     public static void passToAlloy(String filename) {
+        String pattern = filename.substring(0,filename.indexOf("_"));
+        System.out.println(pattern);
+        InputStream input = AlloyTest.class.getResourceAsStream("/alloy_models/" + pattern.toLowerCase() + ".als");
+        
         // boilerplate alloy4 reporter code
         A4Reporter rep = new A4Reporter() {
             // here we choose to display each "warning" by printing it to System.out
@@ -69,13 +73,13 @@ public final class AlloyTest {
             // Execute the command
             System.out.println("=========== Command " + command + ": ===========");
             A4Solution ans = null;
-            try { 
+            try {
                 ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
             } catch (Err ex) {
                 Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
             }
             // Print the outcome
-            
+
 
             if(ans.satisfiable()){
                 System.out.println(command + " failed");
