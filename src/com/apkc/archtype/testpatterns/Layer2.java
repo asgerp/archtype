@@ -16,7 +16,7 @@ import com.apkc.archtype.quals.Pattern;
         )
 public class Layer2 {
     Layer1 layer1;
-    Layer3 layer3;
+    //Layer3 layer3;
 
     public Layer2() {
     }
@@ -25,17 +25,17 @@ public class Layer2 {
         return layer1;
     }
 
-    public void setLayer1(Layer1 layer1) {
+    public void setLayer1(Layer1 layer1, Layer3 l3) {
         this.layer1 = layer1;
     }
 
-    public Layer3 getLayer3() {
-        return layer3;
+    public void getLayer3() {
+        //return layer3;
     }
 
-    public void setLayer3(Layer3 layer3) {
-        this.layer3 = layer3;
-    }
+    //public void setLayer3(Layer3 layer3) {
+        //this.layer3 = layer3;
+    //}
 
     
 

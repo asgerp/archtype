@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +28,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import org.apache.commons.lang3.*;
 
 /**
  * Component processor. Process @Component annotations and writes alloy models to files
@@ -91,15 +93,16 @@ public class ComponentProcessor extends AbstractProcessor {
                 // is return value
                 if(type.contains("()")){
                     stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
-                } else 
-                    // is parameter
+                } else
+                    // is parameter check for more than one param
                     if (type.contains(")")){
-                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") +1));
-                }
-                // is field 
-                else{
-                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
-                }
+                        String[] params = StringUtils.split(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") +1), ',');
+                        stringRefs.addAll(Arrays.asList(params));
+                    }
+                    // is field
+                    else{
+                        stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+                    }
             }
         }
         refs.put(e.getSimpleName().toString(), stringRefs);
@@ -147,9 +150,9 @@ public class ComponentProcessor extends AbstractProcessor {
             String patternName = (String) next.getKey();
             ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
 
-            
+
             try {
-                
+
 
                 String pat = "";
                 StringBuilder contains = new StringBuilder("\telements = ");
