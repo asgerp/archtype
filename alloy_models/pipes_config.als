@@ -35,6 +35,9 @@ assert reachable {
 assert pipes {
 	ac[Instance] reach[Instance]
 }
+//check ac for 8
+//check reachable for 8
+
 check pipes for 8
 
 
