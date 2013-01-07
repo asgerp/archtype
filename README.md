@@ -19,6 +19,12 @@ An annotation looks like this
 		patterns = {@Pattern(name="testMvc",kind = "MVC", role="Controller"), @Pattern(...)}
 	)
 
+Certain patterns may require meta data, such as layers and presenter-abstraction-control. This can be done by post fixing the role name with the meta data in {}. Like this:
+
+	@Component(
+		patterns = {@Pattern(name="testLayer",kind = "Layered", role="layer{1}")}
+	)
+
 where patterns is a list of patterns the component participates in. A pattern consists of a name of the pattern, the kind of the pattern, and the role the components plays in the pattern.
 
 ## Requirements
