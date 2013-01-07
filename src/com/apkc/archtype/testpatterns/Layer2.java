@@ -12,7 +12,7 @@ import com.apkc.archtype.quals.Pattern;
  * @author asger
  */
 @Component(
-        patterns = {@Pattern(name="testLayered", kind = "Layered", role="LayerBL")}
+        patterns = {@Pattern(name="testLayered", kind = "Layered", role="Layer{2}")}
         )
 public class Layer2 {
     Layer1 layer1;

@@ -6,6 +6,7 @@ package com.apkc.archtype.processors;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.apache.commons.lang3.StringUtils;
 
 
 
@@ -34,6 +35,15 @@ public class ComponentRepresentation {
         this.references = new ArrayList<>();
     }
 
+    public String[] getMetaData(){
+        String name = role;
+        if(name.contains("{")){
+            String metas = StringUtils.substringBetween(name, "{","}");
+            return StringUtils.split(metas,"_");
+        }
+        return null;
+    }
+
     public String getComponentName() {
         return componentName;
     }
@@ -43,6 +53,9 @@ public class ComponentRepresentation {
     }
 
     public String getRole() {
+        if(role.contains("{")){
+            return StringUtils.substringBefore(role, "{");
+        }
         return role;
     }
 
@@ -82,7 +95,7 @@ public class ComponentRepresentation {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("one sig ").append(componentName).append(" extends ").append(role).append(" { } {\n");
+        sb.append("one sig ").append(componentName).append(" extends ").append(getRole()).append(" { } {\n");
         sb.append("\treferences = ");
         Iterator<String> it = references.iterator();
         while( it.hasNext()) {
@@ -93,6 +106,14 @@ public class ComponentRepresentation {
                 sb.append("\n");
             }
         }
+        String[] meta = getMetaData();
+        if(meta != null){
+            sb.append("\tmeta = ");
+            for (int i = 0; i < meta.length; i++) {
+                sb.append(meta[i]);
+            }
+        }
+        sb.append("\n");
         sb.append("}\n");
         return sb.toString();
         //return "ComponentRepresentation{" + "componentName=" + componentName + ", pattern=" + pattern + ", role=" + role + ", refreferences=" + references + '}';

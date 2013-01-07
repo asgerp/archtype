@@ -1,29 +1,48 @@
 module layered
-
+open util/integer
 
 // General model
 abstract sig Configuration { elements: set Element }
-abstract sig Element { references: set Element }
+abstract sig Element { references: set Element, meta: Int }
 
 // Layered style
-sig LayerDATA extends Element { }
-
-sig LayerBL extends Element { }
-
-sig LayerPRESENT extends Element { }
+abstract sig Layer extends Element { }
 
 
-
-pred layered_layerdata_style [c: Configuration] {
-	all m: c.elements & LayerDATA | all r: m.references | r not in LayerPRESENT
+pred layer_bigger[ i:Int, j:Int] {
+	int[i].add[1] = int[j] 
 }
-pred layered_layerpresent_style [c: Configuration] {
-	all view: c.elements & LayerPRESENT | all ref: view.references | ref not in LayerDATA
+
+pred layer_smaller[ i:Int, j:Int] {
+	int[i].sub[1] = int[j] 
 }
-pred layered_layerbl_style [c: Configuration] {
+
+pred layer_equal[ i:Int, j:Int] {
+	int[i] = int[j] 
+}
+
+pred layer_no_ref_self [c: Configuration ] {
+	all m: c.elements & Layer | m not in m.references
+}
+
+pred non_zero_refs [c: Configuration ] {
+	all m: c.elements & Layer | #m.references > 0
+}
+
+pred layered_style [c: Configuration] {
+	all m: c.elements & Layer | all r: m.references | layer_bigger[r.meta,m.meta] or layer_smaller[r.meta,m.meta] or layer_equal[r.meta,m.meta]
+}
+
+//pred layered_layerpresent_style [c: Configuration] {
+//	all view: c.elements & LayerPRESENT | all ref: view.references | ref not in LayerDATA
+//}
+//pred layered_layerbl_style [c: Configuration] {
 	
+pred layered_layer_style [c: Configuration]{
+	layered_style[c] 
+	layer_no_ref_self[c] 
+	non_zero_refs[c]
 }
-pred layered_style [c: Configuration]{
-	layered_layerpresent_style[c] layered_layerdata_style[c]
-}
+
+run layered_style for exactly 1 Configuration, 10 Layer
 

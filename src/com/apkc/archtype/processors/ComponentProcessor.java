@@ -193,11 +193,7 @@ public class ComponentProcessor extends AbstractProcessor {
 
                     }
                 }
-                // loop for asserts
-                //                writeAsserts(out,pat,patternName);
-                // loop for commands
-                //              writeCommands(out, pat);
-
+                
                 out.close();
                 fileNames.add(generatedFilename);
             } catch (IOException ex) {

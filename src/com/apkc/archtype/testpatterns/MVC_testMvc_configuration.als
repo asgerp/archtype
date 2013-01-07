@@ -4,15 +4,19 @@ one sig testMvc extends Configuration { } {
 }
 one sig TestController extends Controller { } {
 	references = TestController + TestModel
+
 }
 one sig ViewTest extends View { } {
 	references = TestController
+
 }
 one sig TestModel extends Model { } {
 	references = ViewTest + TestController3
+
 }
 one sig TestController3 extends Controller { } {
 	references = TestController + TestModel
+
 }
 assert testcontroller {
 	mvc_controller_style[testMvc]
