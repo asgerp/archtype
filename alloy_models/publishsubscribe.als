@@ -17,5 +17,5 @@ pred publishsubscribe_consumer_style [c:Configuration] {
 }
 
 pred publishsubscribe_manager_style [c:Configuration] {
-	one m: c.elements
+	one m: c.elements & SubscriptionManager
 }
