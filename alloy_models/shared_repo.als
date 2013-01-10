@@ -19,10 +19,14 @@ pred gt1Client [c: Configuration] {
 }
 
 // no client <-> client referencing * throws warning
-pred noC2C [c: Configuration] { all cl:c.elements & Client | cl.references not in Client } 
+pred noC2C [c: Configuration] { 
+	all cl:c.elements & Client | #(cl.references & Client) = 0 
+} 
 
 // no repo <-> repo referencing * throws warning
-pred noR2R [c: Configuration] { all s:c.elements & Shared_repo | s.references not in Shared_repo }
+pred noR2R [c: Configuration] { 
+	all s:c.elements & Shared_repo | #(s.references & Shared_repo) = 0
+}
 
 // main predicates
 pred shared_repo_shared_repo_style [c:Configuration] {

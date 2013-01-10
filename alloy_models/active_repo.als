@@ -4,7 +4,7 @@ module active_repo
 abstract sig Configuration { elements: set Element }
 abstract sig Element { }
 
-// Shared repo style
+// Active repo style
 sig Active_repo extends Element { references: set Element }
 sig Client extends Element { references: one Element }
 
@@ -19,10 +19,14 @@ pred gt1Client [c: Configuration] {
 }
 
 // no client <-> client referencing * throws warning
-pred noC2C [c: Configuration] { all cl:c.elements & Client | cl.references not in Client } 
+pred noC2C [c: Configuration] { 
+	all cl:c.elements & Client | #(cl.references & Client) = 0 
+} 
 
 // no repo <-> repo referencing * throws warning
-pred noR2R [c: Configuration] { all s:c.elements & Active_repo | s.references not in Active_repo }
+pred noR2R [c: Configuration] { 
+	all a:c.elements & Active_repo | #(a.references & Active_repo) = 0
+}
 
 // main predicates
 pred active_repo_active_repo_style [c:Configuration] {
