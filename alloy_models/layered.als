@@ -31,7 +31,6 @@ pred layered_style [c: Configuration] {
 	
 pred layered_layer_style [c: Configuration]{
 	layered_style[c] 
-	layer_no_ref_self[c] 
 	non_zero_refs[c]
 }
 
