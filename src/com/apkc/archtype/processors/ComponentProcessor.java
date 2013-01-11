@@ -280,7 +280,6 @@ public class ComponentProcessor extends AbstractProcessor {
                     }
                 }
                 ite = componentRepresentation.iterator();
-                // is
                 while(ite.hasNext()){
                     ComponentRepresentation c = ite.next();
                     if(value.contains(c.getComponentName()) && inPattern){
