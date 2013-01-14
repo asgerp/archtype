@@ -30,14 +30,19 @@ where patterns is a list of patterns the component participates in. A pattern co
 ### Supported patterns
 
 1. Layers ( **Components**: Layer{layer#}, **Pattern name**: Layered)
+1. Indirection Layers ( **Components**: Inlayer{inlayer#}, **Pattern name**: Indirectionlayer)
 1. Model-View-Control ( **Components**: Model, View, Controller, **Pattern name**: MVC)
 1. Client-Server ( **Components**: Client, Server, **Pattern name**: clientserv)
 1. Peer-to-Peer ( **Components**: Peer, **Pattern name**: peer2peer)
 1. Publish-Subscribe ( **Components**: Producer, SubscriptionManager, Consumer, **Pattern name**: publishsubscribe)
+1. Shared Repository
+1. Active Repository
+1. Blackboard
 
 
 ## Requirements
 
 all extern jars should be placed in lib/ folder.
 
-* alloy
+* [alloy](http://alloy.mit.edu/alloy/download.html)
+* [Apache commons lang 3](http://commons.apache.org/lang/download_lang.cgi)
