@@ -5,7 +5,7 @@
 package com.apkc.archtype.processors;
 
 import com.apkc.archtype.alloy.AlloyTest;
-import com.apkc.archtype.quals.Component;
+import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -31,7 +31,7 @@ import javax.tools.Diagnostic;
 import org.apache.commons.lang3.*;
 
 /**
- * Component processor. Process @Component annotations and writes alloy models to files
+ * ArchTypeComponent processor. Process @ArchTypeComponent annotations and writes alloy models to files
  * @author asger
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
@@ -82,7 +82,7 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param components - a hashmap containing all components, stored under the pattern(s) they are part of
      */
     private void processAnnotation(Element e, Messager m, HashMap components, HashMap refs){
-        Component com = e.getAnnotation(Component.class);
+        ArchTypeComponent com = e.getAnnotation(ArchTypeComponent.class);
 
         // TODO do some analisys of enclosed contra p.references, do they
         List<? extends Element> enclosedElements = e.getEnclosedElements();
@@ -229,7 +229,7 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param com
      * @param e
      */
-    private void debugComponent(Component com, Element e){
+    private void debugComponent(ArchTypeComponent com, Element e){
         System.out.println("{");
         System.out.println("Component: ");
         System.out.println("\tname: " + e.getSimpleName());

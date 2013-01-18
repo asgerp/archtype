@@ -4,14 +4,14 @@
  */
 package com.apkc.archtype.testpatterns;
 
-import com.apkc.archtype.quals.Component;
+import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
 
 /**
  *
  * @author asger
  */
-@Component(
+@ArchTypeComponent(
         patterns = {@Pattern(name="testLayered", kind = "Layered", role="Layer{3}")}
         )
 public class Layer3 {

@@ -9,7 +9,7 @@ import com.apkc.archtype.quals.*;
  *
  * @author asger
  */
-@Component(
+@ArchTypeComponent(
         patterns = {@Pattern(name="testMvc",kind = "MVC", role="Controller")}
         )
 public class TestController3 {

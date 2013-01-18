@@ -12,7 +12,7 @@ import java.lang.annotation.*;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface Component {
+public @interface ArchTypeComponent {
     Pattern[] patterns() default{};
 
 }
