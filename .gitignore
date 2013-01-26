@@ -34,7 +34,7 @@ dist/
 
 *.class
 
-nbproject/private/private.properties
+nbproject/private/*
 
 
 .DS_Store
