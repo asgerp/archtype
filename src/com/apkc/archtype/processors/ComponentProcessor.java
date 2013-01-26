@@ -51,21 +51,21 @@ public class ComponentProcessor extends AbstractProcessor {
         Messager messager = processingEnv.getMessager();
         HashMap components = new HashMap();
         HashMap references = new HashMap();
-        ArrayList<String> annotatedClasses = new ArrayList<>();
+        //ArrayList<String> annotatedClasses = new ArrayList<>();
         boolean claimed = false;
         for (TypeElement te: annotations) {
 
             //Get the members that are annotated with Option
             for (Element e: roundEnv.getElementsAnnotatedWith(te)){
                 claimed = true;
-                annotatedClasses.add(e.getSimpleName().toString());
+                //annotatedClasses.add(e.getSimpleName().toString());
                 processAnnotation(e, messager, components, references);
             }
         }
 
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
-        setUpReferences(annotatedClasses, references, components);
+        setUpReferences(references, components);
         ArrayList<String> files = generateAlloyModels(components);
         for(String file: files){
             // should return a data structure that encapsulates whether the check passed or not and a message
@@ -248,11 +248,10 @@ public class ComponentProcessor extends AbstractProcessor {
     }
     /**
      *
-     * @param annotatedClasses
      * @param references
      * @param components
      */
-    private void setUpReferences(ArrayList<String> annotatedClasses, HashMap references, HashMap components) {
+    private void setUpReferences(HashMap references, HashMap components) {
 
         Iterator iterator = references.entrySet().iterator();
         // each annotedclass
