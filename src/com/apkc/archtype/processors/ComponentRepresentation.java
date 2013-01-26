@@ -4,6 +4,7 @@
  */
 package com.apkc.archtype.processors;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author asger
  */
-public class ComponentRepresentation {
+public class ComponentRepresentation implements Serializable{
     private String componentName;
     private String pattern;
     private String role;
@@ -118,9 +119,4 @@ public class ComponentRepresentation {
         return sb.toString();
         //return "ComponentRepresentation{" + "componentName=" + componentName + ", pattern=" + pattern + ", role=" + role + ", refreferences=" + references + '}';
     }
-
-
-
-
-
 }
