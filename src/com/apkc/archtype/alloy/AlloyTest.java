@@ -89,7 +89,61 @@ public final class AlloyTest {
             }
         }
     }
+    
+    /**
+     * @param model - the model to pass to alloy for interpreting
+     */
+    public static void passStrToAlloy(String model) {
+        String pattern = model.substring(7,model.indexOf('\n'));
+        //InputStream input = AlloyTest.class.getResourceAsStream("/alloy_models/" + pattern.toLowerCase() + ".als");
+        
+        // boilerplate alloy4 reporter code
+        A4Reporter rep = new A4Reporter() {
+            // here we choose to display each "warning" by printing it to System.out
+            @Override
+            public void warning(ErrorWarning msg) {
+                System.out.print("Relevance Warning:\n" + (msg.toString().trim()) + "\n\n");
+                System.out.flush();
+            }
+        };
+        // Parse+typecheck the model
+        System.out.println("=========== Parsing+Typechecking " + pattern + " ===========");
+        Module world = null;
+        try {
+            //world = CompUtil.parseEverything_fromFile(rep, null, filename);
+            world = CompUtil.parseOneModule(model);
+        } catch (Err ex) {
+            Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
+        // Choose some default options for how you want to execute the commands
+        A4Options options = new A4Options();
+        options.solver = A4Options.SatSolver.SAT4J;
+        options.skolemDepth = 1;
+        // FIXME: figure out folders and shit
+        //options.tempDirectory
+        for (Command command : world.getAllCommands()) {
+            // Execute the command
+            System.out.println("=========== Command " + command + ": ===========");
+            A4Solution ans = null;
+            try {
+                ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
+            } catch (Err ex) {
+                Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            // Print the outcome
+
+
+            if(ans.satisfiable()){
+                System.out.println(command + " failed");
+
+            } else {
+                System.out.println(command + " passed");
+            }
+        }
+    }
+   
+    
     public static void main(String[] args) throws Err {
         // quick test
         String path = null;

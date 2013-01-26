@@ -5,6 +5,7 @@
 package com.apkc.archtype.processors;
 
 import com.apkc.archtype.alloy.AlloyTest;
+import com.apkc.archtype.models.Model;
 import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
 import java.io.BufferedWriter;
@@ -31,18 +32,27 @@ import javax.tools.Diagnostic;
 import org.apache.commons.lang3.*;
 
 /**
- * ArchTypeComponent processor. Process @ArchTypeComponent annotations and writes alloy models to files
+ * ArchTypeComponent processor. Process
+ *
+ * @ArchTypeComponent annotations and writes alloy models to files
  * @author asger
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@SupportedAnnotationTypes({"com.apkc.archtype.quals.Component"})
+@SupportedAnnotationTypes({"com.apkc.archtype.quals.ArchTypeComponent"})
 public class ComponentProcessor extends AbstractProcessor {
 
     /**
      *
-     * @param annotations annotations - contains the set of annotations that we are interested in processing. The annotations in the set should correspond with the list of annotations that we specify in the @SupportedAnnotationTypes annotation
+     * @param annotations annotations - contains the set of annotations that we
+     * are interested in processing. The annotations in the set should
+     * correspond with the list of annotations that we specify in the
+     * @SupportedAnnotationTypes annotation
      * @param roundEnv - this is the processing environment
-     * @return boolean -  a boolean value is to indicate whether we have claimed ownership of the set of annotations passed by the processing environment in elements. "Claiming ownership" means that the set of annotations in elements are ours, and we have processed it. Return true if you claim ownership of them; false otherwise.
+     * @return boolean - a boolean value is to indicate whether we have claimed
+     * ownership of the set of annotations passed by the processing environment
+     * in elements. "Claiming ownership" means that the set of annotations in
+     * elements are ours, and we have processed it. Return true if you claim
+     * ownership of them; false otherwise.
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -53,10 +63,10 @@ public class ComponentProcessor extends AbstractProcessor {
         HashMap references = new HashMap();
         //ArrayList<String> annotatedClasses = new ArrayList<>();
         boolean claimed = false;
-        for (TypeElement te: annotations) {
+        for (TypeElement te : annotations) {
 
             //Get the members that are annotated with Option
-            for (Element e: roundEnv.getElementsAnnotatedWith(te)){
+            for (Element e : roundEnv.getElementsAnnotatedWith(te)) {
                 claimed = true;
                 //annotatedClasses.add(e.getSimpleName().toString());
                 processAnnotation(e, messager, components, references);
@@ -66,66 +76,64 @@ public class ComponentProcessor extends AbstractProcessor {
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
         setUpReferences(references, components);
-        ArrayList<String> files = generateAlloyModels(components);
-        for(String file: files){
+        ArrayList<String> models = generateAlloyModelsStr(components);
+        for (String model : models) {
             // should return a data structure that encapsulates whether the check passed or not and a message
-            AlloyTest.passToAlloy(file);
+            //AlloyTest.passToAlloy(model);
+            AlloyTest.passStrToAlloy(model);
         }
         return claimed;
     }
-
 
     /**
      *
      * @param e - the element currently being worked on
      * @param m - the messager used for errors, notes and the like
-     * @param components - a hashmap containing all components, stored under the pattern(s) they are part of
+     * @param components - a hashmap containing all components, stored under the
+     * pattern(s) they are part of
      */
-    private void processAnnotation(Element e, Messager m, HashMap components, HashMap refs){
+    private void processAnnotation(Element e, Messager m, HashMap components, HashMap refs) {
         ArchTypeComponent com = e.getAnnotation(ArchTypeComponent.class);
-
         // TODO do some analisys of enclosed contra p.references, do they
         List<? extends Element> enclosedElements = e.getEnclosedElements();
         ArrayList<String> stringRefs = new ArrayList<>();
-        for(Element el: enclosedElements){
+        for (Element el : enclosedElements) {
             String type = el.asType().toString();
-            if(type.contains(".")){
+            if (type.contains(".")) {
                 // is return value
-                if(type.contains("()")){
+                if (type.contains("()")) {
                     stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
-                } else
-                    // is parameter check for more than one param
-                    if (type.contains(")")){
-                        String[] params = StringUtils.split(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") +1), ',');
-                        stringRefs.addAll(Arrays.asList(params));
-                    }
-                    // is field
-                    else{
-                        stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
-                    }
+                } else // is parameter check for more than one param
+                if (type.contains(")")) {
+                    String[] params = StringUtils.split(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") + 1), ',');
+                    stringRefs.addAll(Arrays.asList(params));
+                } // is field
+                else {
+                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+                }
             }
         }
         refs.put(e.getSimpleName().toString(), stringRefs);
         ArrayList<ComponentRepresentation> cr;
-        for(Pattern p : com.patterns()){
+        for (Pattern p : com.patterns()) {
             ComponentRepresentation comRep = new ComponentRepresentation(e.getSimpleName().toString(), p.kind(), p.role());
             // check if the hashmap contains pattern p, if is does check if the list allready
             // contains the the component and extend the components references
             // else just add component
-            if(components.containsKey(p.name())){
-                cr =  (ArrayList<ComponentRepresentation>) components.get(p.name());
-                boolean wasThere = false;/**
+            if (components.containsKey(p.name())) {
+                cr = (ArrayList<ComponentRepresentation>) components.get(p.name());
+                boolean wasThere = false;
+                /**
                  * for (ComponentRepresentation crIns : cr) {
                  * if(crIns.getComponentName().equals(comRep.getComponentName())){
-                 * crIns.extendReferences(comRep.getRefreferences());
-                 * wasThere = true;
-                 * }
-                 * }
-                 * */
-                if(!wasThere){
+                 * crIns.extendReferences(comRep.getRefreferences()); wasThere =
+                 * true; } }
+                 *
+                 */
+                if (!wasThere) {
                     cr.add(comRep);
                 }
-            } else{
+            } else {
                 cr = new ArrayList<>();
                 components.put(p.name(), cr);
                 cr.add(comRep);
@@ -133,38 +141,36 @@ public class ComponentProcessor extends AbstractProcessor {
         }
 
     }
+
     /**
      *
      * @param components
      */
-    private ArrayList<String> generateAlloyModels(HashMap components ) {
+    private ArrayList<String> generateAlloyModels(HashMap components) {
         ArrayList<String> fileNames = new ArrayList<>();
-        if(components.isEmpty()){
+        if (components.isEmpty()) {
             return fileNames;
         }
 
         Iterator componentIterator = components.entrySet().iterator();
         // Iterate over each pattern and write alloy model
-        while(componentIterator.hasNext()){
+        while (componentIterator.hasNext()) {
             Map.Entry next = (Map.Entry) componentIterator.next();
             String patternName = (String) next.getKey();
             ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
 
-
             try {
-
-
                 String pat = "";
                 StringBuilder contains = new StringBuilder("\telements = ");
-                if(componentRepresentation != null){
+                if (componentRepresentation != null) {
                     Iterator<ComponentRepresentation> it = componentRepresentation.iterator();
-                    while( it.hasNext()) {
+                    while (it.hasNext()) {
                         ComponentRepresentation c = it.next();
                         contains.append(c.getComponentName());
                         if (it.hasNext()) {
                             pat = c.getPattern();
                             contains.append(" + ");
-                        } else{
+                        } else {
                             contains.append("\n}\n");
                         }
                     }
@@ -174,26 +180,26 @@ public class ComponentProcessor extends AbstractProcessor {
                 out.write("open " + pat.toLowerCase() + "\n");
                 out.write("one sig " + patternName + " extends Configuration { } {\n");
                 out.write(contains.toString());
-                if(componentRepresentation != null){
+                if (componentRepresentation != null) {
                     Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
-                    while( ite.hasNext()) {
+                    while (ite.hasNext()) {
                         ComponentRepresentation c = ite.next();
                         out.write(c.toString());
                     }
                     ite = componentRepresentation.iterator();
-                    while( ite.hasNext()) {
+                    while (ite.hasNext()) {
                         ComponentRepresentation c = ite.next();
-                        writeAsserts(out,pat,patternName,c.getRole(), c.getComponentName());
+                        writeAsserts(out, pat, patternName, c.getRole(), c.getComponentName());
 
                     }
                     ite = componentRepresentation.iterator();
-                    while( ite.hasNext()) {
+                    while (ite.hasNext()) {
                         ComponentRepresentation c = ite.next();
                         writeCommands(out, pat, c.getComponentName());
 
                     }
                 }
-                
+
                 out.close();
                 fileNames.add(generatedFilename);
             } catch (IOException ex) {
@@ -204,13 +210,83 @@ public class ComponentProcessor extends AbstractProcessor {
     }
 
     /**
-     * Should analyze which pattern is used and write the appropriate commands for that pattern, using the writer.
+     *
+     * @param components
+     */
+    private ArrayList<String> generateAlloyModelsStr(HashMap components) {
+        ArrayList<String> models = new ArrayList<>();
+        if (components.isEmpty()) {
+            return models;
+        }
+
+        Iterator componentIterator = components.entrySet().iterator();
+        // Iterate over each pattern and write alloy model
+        while (componentIterator.hasNext()) {
+            Map.Entry next = (Map.Entry) componentIterator.next();
+            String patternName = (String) next.getKey();
+            ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
+
+            StringBuilder finalStr = new StringBuilder("");
+            String pat = "";
+            StringBuilder contains = new StringBuilder("\telements = ");
+            if (componentRepresentation != null) {
+                Iterator<ComponentRepresentation> it = componentRepresentation.iterator();
+                while (it.hasNext()) {
+                    ComponentRepresentation c = it.next();
+                    contains.append(c.getComponentName());
+                    if (it.hasNext()) {
+                        pat = c.getPattern();
+                        contains.append(" + ");
+                    } else {
+                        contains.append("\n}\n");
+                    }
+                }
+            }
+            Model model = new Model();
+            finalStr.append(model.getModel(pat.toLowerCase(), Boolean.TRUE));
+            //finalStr.append("open " + pat.toLowerCase() + "\n");
+            finalStr.append("\none sig " + patternName + " extends Configuration { } {\n");
+            finalStr.append(contains.toString());
+
+            if (componentRepresentation != null) {
+                Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
+                while (ite.hasNext()) {
+                    ComponentRepresentation c = ite.next();
+                    finalStr.append(c.toString());
+                }
+                ite = componentRepresentation.iterator();
+                while (ite.hasNext()) {
+                    ComponentRepresentation c = ite.next();
+                    writeAssertsStr(finalStr, pat, patternName, c.getRole(), c.getComponentName());
+
+                }
+                ite = componentRepresentation.iterator();
+                while (ite.hasNext()) {
+                    ComponentRepresentation c = ite.next();
+                    writeCommandsStr(finalStr, pat, c.getComponentName());
+                }
+            }
+            System.out.println(finalStr);
+            models.add(finalStr.toString());
+        }
+        return models;
+    }
+
+    /**
+     * Should analyze which pattern is used and write the appropriate commands
+     * for that pattern, using the writer.
+     *
      * @param bw
      * @param pattern
      */
-    private void writeCommands(BufferedWriter bw, String pattern, String componentName) throws IOException{
-        bw.write("check " + componentName.toLowerCase() +" for 8\n");
+    private void writeCommands(BufferedWriter bw, String pattern, String componentName) throws IOException {
+        bw.write("check " + componentName.toLowerCase() + " for 8\n");
     }
+
+    private void writeCommandsStr(StringBuilder sb, String pattern, String componentName) {
+        sb.append("check " + componentName.toLowerCase() + " for 1 Configuration, 8 Element\n");
+    }
+
     /**
      *
      * @param bw
@@ -218,10 +294,16 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param patternName
      * @throws IOException
      */
-    private void writeAsserts(BufferedWriter bw, String pattern, String patternName, String role, String componentName) throws IOException{
-        bw.write("assert "+ componentName.toLowerCase()+" {\n");
-        bw.write("\t" + pattern.toLowerCase() + "_"+ role.toLowerCase()+"_style["+ patternName+"]\n");
+    private void writeAsserts(BufferedWriter bw, String pattern, String patternName, String role, String componentName) throws IOException {
+        bw.write("assert " + componentName.toLowerCase() + " {\n");
+        bw.write("\t" + pattern.toLowerCase() + "_" + role.toLowerCase() + "_style[" + patternName + "]\n");
         bw.write("}\n");
+    }
+
+    private void writeAssertsStr(StringBuilder sb, String pattern, String patternName, String role, String componentName) {
+        sb.append("assert " + componentName.toLowerCase() + " {\n");
+        sb.append("\t" + pattern.toLowerCase() + "_" + role.toLowerCase() + "_style[" + patternName + "]\n");
+        sb.append("}\n");
     }
 
     /**
@@ -229,40 +311,40 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param com
      * @param e
      */
-    private void debugComponent(ArchTypeComponent com, Element e){
+    private void debugComponent(ArchTypeComponent com, Element e) {
         System.out.println("{");
         System.out.println("Component: ");
         System.out.println("\tname: " + e.getSimpleName());
-        System.out.println( "\tfileName: " + e.getSimpleName());
-        for(Pattern p: com.patterns()){
+        System.out.println("\tfileName: " + e.getSimpleName());
+        for (Pattern p : com.patterns()) {
             System.out.println("\t\t{");
             System.out.println("\t\t\tPattern:");
             System.out.println("\t\t\t\tname: " + p.name());
             System.out.println("\t\t\t\tkind: " + p.kind());
             System.out.println("\t\t\t\trole: " + p.role());
-            System.out.println("\t\t\t\trefs: {" );
+            System.out.println("\t\t\t\trefs: {");
             System.out.println("\t\t\t\t}");
             System.out.println("\t\t}");
         }
         System.out.println("}");
     }
+
     /**
      *
      * @param references
      * @param components
      */
     private void setUpReferences(HashMap references, HashMap components) {
-
         Iterator iterator = references.entrySet().iterator();
         // each annotedclass
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             // annotated class
             Map.Entry next = (Map.Entry) iterator.next();
             String anClass = (String) next.getKey();
             Iterator compIt = components.entrySet().iterator();
             ArrayList<String> value = (ArrayList<String>) next.getValue();
             // each pattern
-            while(compIt.hasNext()){
+            while (compIt.hasNext()) {
                 Map.Entry pattern = (Map.Entry) compIt.next();
 
                 ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) pattern.getValue();
@@ -271,17 +353,17 @@ public class ComponentProcessor extends AbstractProcessor {
                 ComponentRepresentation anClassCr = null;
                 // is annotated class in pattern
                 // each class in pattern
-                while( ite.hasNext()) {
+                while (ite.hasNext()) {
                     ComponentRepresentation c = ite.next();
-                    if (c.getComponentName().equals(anClass)){
+                    if (c.getComponentName().equals(anClass)) {
                         inPattern = true;
                         anClassCr = c;
                     }
                 }
                 ite = componentRepresentation.iterator();
-                while(ite.hasNext()){
+                while (ite.hasNext()) {
                     ComponentRepresentation c = ite.next();
-                    if(value.contains(c.getComponentName()) && inPattern){
+                    if (value.contains(c.getComponentName()) && inPattern) {
                         anClassCr.extendReferences(c.getComponentName());
                     }
                 }
