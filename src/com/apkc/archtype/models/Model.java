@@ -4,8 +4,12 @@
  */
 package com.apkc.archtype.models;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -13,19 +17,24 @@ import org.apache.commons.io.IOUtils;
  * @author mundane
  */
 public class Model {   
-    public static String getModel(String str, Boolean verbose) {
+    
+    public String getModel(String str, Boolean verbose) {
         if(verbose){
             System.out.println("Opening model file: "+str+"\n");
         }
-        FileInputStream fis;
-        String fStr = "";
+        StringBuilder fStr = new StringBuilder();
         try {
-            fis = new FileInputStream(str);
-            fStr = IOUtils.toString(fis);
-            fis.close();
+            InputStream stream = getClass().getResourceAsStream(str+".als");
+            BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+            String line = "";
+            while(line != null) {
+                fStr.append(line+"\n");
+                line = br.readLine();
+            }
+            br.close();
         } catch (Exception ioe) {     
             ioe.printStackTrace();
         }
-        return fStr;
+        return fStr.toString().trim();
     }
 }
