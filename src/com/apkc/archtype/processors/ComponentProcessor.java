@@ -8,9 +8,17 @@ import com.apkc.archtype.alloy.AlloyTest;
 import com.apkc.archtype.models.Model;
 import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,8 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -28,8 +34,8 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import org.apache.commons.lang3.*;
+import org.apache.log4j.Logger;
 
 /**
  * ArchTypeComponent processor. Process
@@ -40,7 +46,7 @@ import org.apache.commons.lang3.*;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedAnnotationTypes({"com.apkc.archtype.quals.ArchTypeComponent"})
 public class ComponentProcessor extends AbstractProcessor {
-
+    final static Logger log = Logger.getLogger(ComponentProcessor.class.getName());
     /**
      *
      * @param annotations annotations - contains the set of annotations that we
@@ -59,16 +65,16 @@ public class ComponentProcessor extends AbstractProcessor {
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
-        HashMap components = new HashMap();
+        HashMap<String,ArrayList<ComponentRepresentation>> components = new HashMap();
         HashMap references = new HashMap();
-        //ArrayList<String> annotatedClasses = new ArrayList<>();
+        ArrayList<String> annotatedClasses = new ArrayList<>();
         boolean claimed = false;
         for (TypeElement te : annotations) {
 
             //Get the members that are annotated with Option
             for (Element e : roundEnv.getElementsAnnotatedWith(te)) {
                 claimed = true;
-                //annotatedClasses.add(e.getSimpleName().toString());
+                annotatedClasses.add(e.getSimpleName().toString());
                 processAnnotation(e, messager, components, references);
             }
         }
@@ -76,6 +82,58 @@ public class ComponentProcessor extends AbstractProcessor {
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
         setUpReferences(references, components);
+        File f = new File("components.ser");
+        int size = components.size();
+        log.debug("no of entries before write: " + size);
+        try {
+            f.createNewFile();
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
+            Iterator iterator = components.entrySet().iterator();
+            oos.writeObject(size);
+            while(iterator.hasNext()){
+                Map.Entry next = (Map.Entry) iterator.next();
+                String patternName = (String) next.getKey();
+                log.debug("writes pattern: " + patternName);
+                oos.writeObject(patternName);
+                oos.writeObject(next.getValue());
+            }
+
+
+            oos.close();
+        } catch (IOException ex) {
+            log.warn(ex);
+        }
+        HashMap<String,ArrayList<ComponentRepresentation>> readComponents = new HashMap();
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(f)));
+            int reads = 0;
+            int objects = (int) ois.readObject();
+            log.debug("no of entries after read = " + objects);
+
+            while(reads < objects){
+                String ptn = (String)ois.readObject();
+                ArrayList<ComponentRepresentation> acr = (ArrayList<ComponentRepresentation>)ois.readObject();
+                readComponents.put(ptn,acr);
+                reads++;
+            }
+
+            if(readComponents == null){
+                log.debug("BLERGH");
+            } else{
+                Iterator iterator = readComponents.entrySet().iterator();
+                if(iterator == null) {
+                    log.debug("NULL");
+                }
+                while(iterator.hasNext()){
+                    Map.Entry next = (Map.Entry) iterator.next();
+                    String patternName = (String) next.getKey();
+                    log.debug("Has read = " + patternName);
+                }
+            }
+        } catch (IOException | ClassNotFoundException ex) {
+            log.warn(ex);
+        }
+        
         ArrayList<String> models = generateAlloyModelsStr(components);
         for (String model : models) {
             // should return a data structure that encapsulates whether the check passed or not and a message
@@ -203,7 +261,7 @@ public class ComponentProcessor extends AbstractProcessor {
                 out.close();
                 fileNames.add(generatedFilename);
             } catch (IOException ex) {
-                Logger.getLogger(ComponentProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                log.warn(ex);
             }
         }
         return fileNames;
@@ -311,22 +369,23 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param com
      * @param e
      */
-    private void debugComponent(ArchTypeComponent com, Element e) {
-        System.out.println("{");
-        System.out.println("Component: ");
-        System.out.println("\tname: " + e.getSimpleName());
-        System.out.println("\tfileName: " + e.getSimpleName());
-        for (Pattern p : com.patterns()) {
-            System.out.println("\t\t{");
-            System.out.println("\t\t\tPattern:");
-            System.out.println("\t\t\t\tname: " + p.name());
-            System.out.println("\t\t\t\tkind: " + p.kind());
-            System.out.println("\t\t\t\trole: " + p.role());
-            System.out.println("\t\t\t\trefs: {");
-            System.out.println("\t\t\t\t}");
-            System.out.println("\t\t}");
+
+    private void debugComponent(ArchTypeComponent com, Element e){
+        log.debug("{");
+        log.debug("Component: ");
+        log.debug("\tname: " + e.getSimpleName());
+        log.debug( "\tfileName: " + e.getSimpleName());
+        for(Pattern p: com.patterns()){
+            log.debug("\t\t{");
+            log.debug("\t\t\tPattern:");
+            log.debug("\t\t\t\tname: " + p.name());
+            log.debug("\t\t\t\tkind: " + p.kind());
+            log.debug("\t\t\t\trole: " + p.role());
+            log.debug("\t\t\t\trefs: {" );
+            log.debug("\t\t\t\t}");
+            log.debug("\t\t}");
         }
-        System.out.println("}");
+        log.debug("}");
     }
 
     /**
