@@ -17,8 +17,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -27,17 +25,17 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import org.apache.commons.lang3.*;
+import org.apache.log4j.Logger;
 
 /**
  * ArchTypeComponent processor. Process @ArchTypeComponent annotations and writes alloy models to files
  * @author asger
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@SupportedAnnotationTypes({"com.apkc.archtype.quals.Component"})
+@SupportedAnnotationTypes({"com.apkc.archtype.quals.ArchTypeComponent"})
 public class ComponentProcessor extends AbstractProcessor {
-
+    final static Logger logger = Logger.getLogger(ComponentProcessor.class.getName());
     /**
      *
      * @param annotations annotations - contains the set of annotations that we are interested in processing. The annotations in the set should correspond with the list of annotations that we specify in the @SupportedAnnotationTypes annotation
@@ -193,11 +191,11 @@ public class ComponentProcessor extends AbstractProcessor {
 
                     }
                 }
-                
+
                 out.close();
                 fileNames.add(generatedFilename);
             } catch (IOException ex) {
-                Logger.getLogger(ComponentProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                logger.warn(ex);
             }
         }
         return fileNames;
@@ -230,21 +228,21 @@ public class ComponentProcessor extends AbstractProcessor {
      * @param e
      */
     private void debugComponent(ArchTypeComponent com, Element e){
-        System.out.println("{");
-        System.out.println("Component: ");
-        System.out.println("\tname: " + e.getSimpleName());
-        System.out.println( "\tfileName: " + e.getSimpleName());
+        logger.debug("{");
+        logger.debug("Component: ");
+        logger.debug("\tname: " + e.getSimpleName());
+        logger.debug( "\tfileName: " + e.getSimpleName());
         for(Pattern p: com.patterns()){
-            System.out.println("\t\t{");
-            System.out.println("\t\t\tPattern:");
-            System.out.println("\t\t\t\tname: " + p.name());
-            System.out.println("\t\t\t\tkind: " + p.kind());
-            System.out.println("\t\t\t\trole: " + p.role());
-            System.out.println("\t\t\t\trefs: {" );
-            System.out.println("\t\t\t\t}");
-            System.out.println("\t\t}");
+            logger.debug("\t\t{");
+            logger.debug("\t\t\tPattern:");
+            logger.debug("\t\t\t\tname: " + p.name());
+            logger.debug("\t\t\t\tkind: " + p.kind());
+            logger.debug("\t\t\t\trole: " + p.role());
+            logger.debug("\t\t\t\trefs: {" );
+            logger.debug("\t\t\t\t}");
+            logger.debug("\t\t}");
         }
-        System.out.println("}");
+        logger.debug("}");
     }
     /**
      *
