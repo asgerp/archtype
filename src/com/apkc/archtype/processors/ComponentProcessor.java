@@ -13,7 +13,6 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -70,7 +69,6 @@ public class ComponentProcessor extends AbstractProcessor {
         ArrayList<String> annotatedClasses = new ArrayList<>();
         boolean claimed = false;
         for (TypeElement te : annotations) {
-
             //Get the members that are annotated with Option
             for (Element e : roundEnv.getElementsAnnotatedWith(te)) {
                 claimed = true;
@@ -82,63 +80,45 @@ public class ComponentProcessor extends AbstractProcessor {
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
         setUpReferences(references, components);
+        log.debug(claimed);
         File f = new File("components.ser");
-        int size = components.size();
-        log.debug("no of entries before write: " + size);
-        try {
-            f.createNewFile();
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
-            Iterator iterator = components.entrySet().iterator();
-            oos.writeObject(size);
-            while(iterator.hasNext()){
-                Map.Entry next = (Map.Entry) iterator.next();
-                String patternName = (String) next.getKey();
-                log.debug("writes pattern: " + patternName);
-                oos.writeObject(patternName);
-                oos.writeObject(next.getValue());
-            }
-
-
-            oos.close();
-        } catch (IOException ex) {
-            log.warn(ex);
-        }
-        HashMap<String,ArrayList<ComponentRepresentation>> readComponents = new HashMap();
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(f)));
-            int reads = 0;
-            int objects = (int) ois.readObject();
-            log.debug("no of entries after read = " + objects);
-
-            while(reads < objects){
-                String ptn = (String)ois.readObject();
-                ArrayList<ComponentRepresentation> acr = (ArrayList<ComponentRepresentation>)ois.readObject();
-                readComponents.put(ptn,acr);
-                reads++;
-            }
-
-            if(readComponents == null){
-                log.debug("BLERGH");
-            } else{
-                Iterator iterator = readComponents.entrySet().iterator();
-                if(iterator == null) {
-                    log.debug("NULL");
-                }
+        if(claimed){
+            int size = components.size();
+            try {
+                f.createNewFile();
+                ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
+                Iterator iterator = components.entrySet().iterator();
+                oos.writeObject(size);
                 while(iterator.hasNext()){
                     Map.Entry next = (Map.Entry) iterator.next();
                     String patternName = (String) next.getKey();
-                    log.debug("Has read = " + patternName);
+                    oos.writeObject(patternName);
+                    oos.writeObject(next.getValue());
                 }
+                oos.close();
+            } catch (IOException ex) {
+                log.error(ex);
             }
-        } catch (IOException | ClassNotFoundException ex) {
-            log.warn(ex);
-        }
-        
-        ArrayList<String> models = generateAlloyModelsStr(components);
-        for (String model : models) {
-            // should return a data structure that encapsulates whether the check passed or not and a message
-            //AlloyTest.passToAlloy(model);
-            AlloyTest.passStrToAlloy(model);
+            HashMap<String,ArrayList<ComponentRepresentation>> readComponents = new HashMap();
+            try {
+                ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(f)));
+                int reads = 0;
+                int objects = (int) ois.readObject();
+                while(reads < objects){
+                    String ptn = (String)ois.readObject();
+                    ArrayList<ComponentRepresentation> acr = (ArrayList<ComponentRepresentation>)ois.readObject();
+                    readComponents.put(ptn,acr);
+                    reads++;
+                }
+            } catch (IOException | ClassNotFoundException ex) {
+                log.error(ex);
+            }
+            ArrayList<String> models = generateAlloyModelsStr(components);
+            for (String model : models) {
+                // should return a data structure that encapsulates whether the check passed or not and a message
+                //AlloyTest.passToAlloy(model);
+                AlloyTest.passStrToAlloy(model);
+            }
         }
         return claimed;
     }
@@ -162,13 +142,13 @@ public class ComponentProcessor extends AbstractProcessor {
                 if (type.contains("()")) {
                     stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
                 } else // is parameter check for more than one param
-                if (type.contains(")")) {
-                    String[] params = StringUtils.split(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") + 1), ',');
-                    stringRefs.addAll(Arrays.asList(params));
-                } // is field
-                else {
-                    stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
-                }
+                    if (type.contains(")")) {
+                        String[] params = StringUtils.split(type.substring(type.lastIndexOf(".") + 1, type.lastIndexOf(")") + 1), ',');
+                        stringRefs.addAll(Arrays.asList(params));
+                    } // is field
+                    else {
+                        stringRefs.add(type.substring(type.lastIndexOf(".") + 1));
+                    }
             }
         }
         refs.put(e.getSimpleName().toString(), stringRefs);
