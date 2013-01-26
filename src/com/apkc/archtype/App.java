@@ -4,13 +4,6 @@ import com.apkc.archtype.quals.*;
 import java.lang.annotation.Annotation;
 
 
-/**
- * Test annotation and reflection and like stuff
- *
- */
-@ArchTypeComponent(
-        patterns = {@Pattern(kind = "MVC",name="tes", role="Model"), @Pattern(name="tes",kind = "ClientServer", role= "client")}
-        )
 public class App 
 {
     public static void main( String[] args ) throws NoSuchFieldException
