@@ -5,12 +5,8 @@
 package com.apkc.archtype.models;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import org.apache.commons.io.IOUtils;
 
 /**
  * returns the model supplied as argument as a string
