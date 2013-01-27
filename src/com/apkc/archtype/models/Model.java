@@ -7,16 +7,17 @@ package com.apkc.archtype.models;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
+import org.apache.log4j.Logger;
 /**
  * returns the model supplied as argument as a string
  * @author mundane
  */
 public class Model {   
+    final static Logger log = Logger.getLogger(Model.class);
     
     public String getModel(String str, Boolean verbose) {
         if(verbose){
-            System.out.println("Opening model file: "+str+"\n");
+            log.info("Opening model file: " + str + "\n");
         }
         StringBuilder fStr = new StringBuilder();
         try {
@@ -24,12 +25,12 @@ public class Model {
             BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
             String line = "";
             while(line != null) {
-                fStr.append(line+"\n");
+                fStr.append(line).append("\n");
                 line = br.readLine();
             }
             br.close();
-        } catch (Exception ioe) {     
-            ioe.printStackTrace();
+        } catch (Exception ioe) {
+            log.warn(ioe.getMessage());
         }
         return fStr.toString().trim();
     }
