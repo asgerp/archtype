@@ -17,6 +17,7 @@ package com.apkc.archtype.alloy;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
+import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
@@ -45,7 +46,7 @@ public final class AlloyTest {
         String pattern = filename.substring(0,filename.indexOf("_"));
         System.out.println(pattern);
         InputStream input = AlloyTest.class.getResourceAsStream("/alloy_models/" + pattern.toLowerCase() + ".als");
-        
+
         // boilerplate alloy4 reporter code
         A4Reporter rep = new A4Reporter() {
             // here we choose to display each "warning" by printing it to System.out
@@ -89,14 +90,20 @@ public final class AlloyTest {
             }
         }
     }
-    
+
     /**
      * @param model - the model to pass to alloy for interpreting
      */
-    public static void passStrToAlloy(String model) {
+    public static void passStrToAlloy(String model) throws Err {
         String pattern = model.substring(7,model.indexOf('\n'));
         //InputStream input = AlloyTest.class.getResourceAsStream("/alloy_models/" + pattern.toLowerCase() + ".als");
-        
+        File f = null;
+        try {
+            f = File.createTempFile(pattern, ".als");
+        } catch (IOException ex) {
+            Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Util.writeAll(f.getAbsolutePath(), model);
         // boilerplate alloy4 reporter code
         A4Reporter rep = new A4Reporter() {
             // here we choose to display each "warning" by printing it to System.out
@@ -110,8 +117,8 @@ public final class AlloyTest {
         System.out.println("=========== Parsing+Typechecking " + pattern + " ===========");
         Module world = null;
         try {
-            //world = CompUtil.parseEverything_fromFile(rep, null, filename);
-            world = CompUtil.parseOneModule(model);
+            world = CompUtil.parseEverything_fromFile(rep, null, f.getAbsolutePath());
+            //world = CompUtil.parseOneModule(model);
         } catch (Err ex) {
             Logger.getLogger(AlloyTest.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -126,6 +133,8 @@ public final class AlloyTest {
             // Execute the command
             System.out.println("=========== Command " + command + ": ===========");
             A4Solution ans = null;
+            System.out.println("Scope for command: " + command.scope);
+            System.out.println("Over all scope " + command.overall);
             try {
                 ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
             } catch (Err ex) {
@@ -133,17 +142,20 @@ public final class AlloyTest {
             }
             // Print the outcome
 
+            if(ans == null){
+                System.out.println(command + " superfailed");
+            }else{
+                if(ans.satisfiable()){
+                    System.out.println(command + " failed");
 
-            if(ans.satisfiable()){
-                System.out.println(command + " failed");
-
-            } else {
-                System.out.println(command + " passed");
+                } else {
+                    System.out.println(command + " passed");
+                }
             }
         }
     }
-   
-    
+
+
     public static void main(String[] args) throws Err {
         // quick test
         String path = null;

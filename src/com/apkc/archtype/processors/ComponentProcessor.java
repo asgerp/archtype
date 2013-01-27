@@ -8,6 +8,7 @@ import com.apkc.archtype.alloy.AlloyTest;
 import com.apkc.archtype.models.Model;
 import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
+import edu.mit.csail.sdg.alloy4.Err;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -64,8 +65,8 @@ public class ComponentProcessor extends AbstractProcessor {
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
-        HashMap<String,ArrayList<ComponentRepresentation>> components = new HashMap();
-        HashMap references = new HashMap();
+        HashMap<String,ArrayList<ComponentRepresentation>> components = new HashMap<>();
+        HashMap<String,ArrayList<String>> references = new HashMap<>();
         ArrayList<String> annotatedClasses = new ArrayList<>();
         boolean claimed = false;
         for (TypeElement te : annotations) {
@@ -99,14 +100,15 @@ public class ComponentProcessor extends AbstractProcessor {
             } catch (IOException ex) {
                 log.error(ex);
             }
-            HashMap<String,ArrayList<ComponentRepresentation>> readComponents = new HashMap();
+            HashMap<String,ArrayList<ComponentRepresentation>> readComponents =
+                    new HashMap<>();
             try {
                 ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(f)));
                 int reads = 0;
                 int objects = (int) ois.readObject();
                 while(reads < objects){
                     String ptn = (String)ois.readObject();
-                    ArrayList<ComponentRepresentation> acr = (ArrayList<ComponentRepresentation>)ois.readObject();
+                    ArrayList<ComponentRepresentation> acr = (ArrayList<ComponentRepresentation>) ois.readObject();
                     readComponents.put(ptn,acr);
                     reads++;
                 }
@@ -115,9 +117,14 @@ public class ComponentProcessor extends AbstractProcessor {
             }
             ArrayList<String> models = generateAlloyModelsStr(components);
             for (String model : models) {
-                // should return a data structure that encapsulates whether the check passed or not and a message
-                //AlloyTest.passToAlloy(model);
-                AlloyTest.passStrToAlloy(model);
+                try {
+                    // should return a data structure that encapsulates whether the check passed or not and a message
+                    //AlloyTest.passToAlloy(model);
+                    AlloyTest.passStrToAlloy(model);
+                    //AlloyTest.passToAlloy("alloy_test.als");
+                } catch (Err ex) {
+                    log.error(ex);
+                }
             }
         }
         return claimed;
@@ -283,7 +290,7 @@ public class ComponentProcessor extends AbstractProcessor {
             Model model = new Model();
             finalStr.append(model.getModel(pat.toLowerCase(), Boolean.TRUE));
             //finalStr.append("open " + pat.toLowerCase() + "\n");
-            finalStr.append("\none sig " + patternName + " extends Configuration { } {\n");
+            finalStr.append("\none sig ").append(patternName).append(" extends Configuration { } {\n");
             finalStr.append(contains.toString());
 
             if (componentRepresentation != null) {
@@ -322,7 +329,9 @@ public class ComponentProcessor extends AbstractProcessor {
     }
 
     private void writeCommandsStr(StringBuilder sb, String pattern, String componentName) {
-        sb.append("check " + componentName.toLowerCase() + " for 1 Configuration, 8 Element\n");
+        sb.append("check ")
+          .append(componentName.toLowerCase())
+          .append(" for 8 but 1 Configuration\n");
     }
 
     /**
@@ -339,9 +348,15 @@ public class ComponentProcessor extends AbstractProcessor {
     }
 
     private void writeAssertsStr(StringBuilder sb, String pattern, String patternName, String role, String componentName) {
-        sb.append("assert " + componentName.toLowerCase() + " {\n");
-        sb.append("\t" + pattern.toLowerCase() + "_" + role.toLowerCase() + "_style[" + patternName + "]\n");
-        sb.append("}\n");
+        sb.append("assert ")
+          .append(componentName.toLowerCase())
+          .append(" {\n\t")
+          .append(pattern.toLowerCase())
+          .append("_")
+          .append(role.toLowerCase())
+          .append("_style[")
+          .append(patternName)
+          .append("]\n}\n");
     }
 
     /**
