@@ -15,6 +15,10 @@ pred mvc_view_style [c: Configuration] {
 	all view: c.elements & View | all ref: view.references | ref not in Model
 }
 
+pred mvc_controller_style [c: Configuration] {
+    all controller: c.elements & Controller | all ref: controller.references | ref in Model or ref in View or ref in Controller
+}
+
 pred mvc_style [c: Configuration]{
 	 mvc_model_style[c] mvc_view_style[c]
 }

@@ -14,6 +14,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -36,6 +38,10 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import org.apache.commons.lang3.*;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 
 /**
  * ArchTypeComponent processor. Process
@@ -47,6 +53,8 @@ import org.apache.log4j.Logger;
 @SupportedAnnotationTypes({"com.apkc.archtype.quals.ArchTypeComponent"})
 public class ComponentProcessor extends AbstractProcessor {
     final static Logger log = Logger.getLogger(ComponentProcessor.class.getName());
+    String temp_file_path;
+    boolean keep_processing;
     /**
      *
      * @param annotations annotations - contains the set of annotations that we
@@ -62,6 +70,21 @@ public class ComponentProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        String text = null;
+        JSONParser parser = new JSONParser();
+        JSONObject object = null;
+        try {
+            text = new Scanner( new File("config.json") ).useDelimiter("\\A").next();
+            object = (JSONObject) parser.parse(text);
+        } catch (FileNotFoundException | ParseException ex) {
+            log.error(ex.getMessage());
+        }
+        temp_file_path = (String)object.get("path");
+        keep_processing = (boolean)object.get("continue");
+        log.debug(object.get("path"));
+        log.debug(object.get("continue"));
+
+
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
@@ -81,8 +104,7 @@ public class ComponentProcessor extends AbstractProcessor {
         //If there are any annotations, we will proceed to generate the annotation
         //processor in generateOptionProcessor method
         setUpReferences(references, components);
-        log.debug(claimed);
-        File f = new File("components.ser");
+        File f = new File(temp_file_path + "components.ser");
         if(claimed){
             int size = components.size();
             try {
@@ -311,7 +333,6 @@ public class ComponentProcessor extends AbstractProcessor {
                     writeCommandsStr(finalStr, pat, c.getComponentName());
                 }
             }
-            System.out.println(finalStr);
             models.add(finalStr.toString());
         }
         return models;
@@ -330,8 +351,8 @@ public class ComponentProcessor extends AbstractProcessor {
 
     private void writeCommandsStr(StringBuilder sb, String pattern, String componentName) {
         sb.append("check ")
-          .append(componentName.toLowerCase())
-          .append(" for 8 but 1 Configuration\n");
+                .append(componentName.toLowerCase())
+                .append(" for 8 but 1 Configuration\n");
     }
 
     /**
@@ -349,14 +370,14 @@ public class ComponentProcessor extends AbstractProcessor {
 
     private void writeAssertsStr(StringBuilder sb, String pattern, String patternName, String role, String componentName) {
         sb.append("assert ")
-          .append(componentName.toLowerCase())
-          .append(" {\n\t")
-          .append(pattern.toLowerCase())
-          .append("_")
-          .append(role.toLowerCase())
-          .append("_style[")
-          .append(patternName)
-          .append("]\n}\n");
+                .append(componentName.toLowerCase())
+                .append(" {\n\t")
+                .append(pattern.toLowerCase())
+                .append("_")
+                .append(role.toLowerCase())
+                .append("_style[")
+                .append(patternName)
+                .append("]\n}\n");
     }
 
     /**

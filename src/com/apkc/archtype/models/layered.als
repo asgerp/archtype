@@ -34,5 +34,4 @@ pred layered_layer_style [c: Configuration]{
 	non_zero_refs[c]
 }
 
-run layered_style for exactly 1 Configuration, 10 Layer
 

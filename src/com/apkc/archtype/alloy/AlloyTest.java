@@ -133,8 +133,6 @@ public final class AlloyTest {
             // Execute the command
             System.out.println("=========== Command " + command + ": ===========");
             A4Solution ans = null;
-            System.out.println("Scope for command: " + command.scope);
-            System.out.println("Over all scope " + command.overall);
             try {
                 ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
             } catch (Err ex) {
