@@ -1,24 +1,40 @@
 package com.apkc.archtype;
 
-import com.apkc.archtype.quals.*;
-import java.lang.annotation.Annotation;
+import com.apkc.archtype.alloy.AlloyTest;
+import com.apkc.archtype.processors.ComponentProcessor;
+import com.apkc.archtype.processors.ComponentRepresentation;
+import com.apkc.archtype.processors.ProcessorUtils;
+import edu.mit.csail.sdg.alloy4.Err;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import org.apache.log4j.Logger;
 
 
-public class App 
+public class App
 {
+    final static Logger log = Logger.getLogger(ComponentProcessor.class.getName());
+    
     public static void main( String[] args ) throws NoSuchFieldException
     {
-        // We need to use getDeclaredField here since the field is private.
-      Class aClass = App.class;
-      Annotation[] anns = aClass.getAnnotations();
-      for(Annotation annotation: anns){
-          if(annotation instanceof ArchTypeComponent){
-              ArchTypeComponent compo = (ArchTypeComponent) annotation;
-              for(Pattern p : compo.patterns()){
-                System.out.println("pattern name: " + p.name());
-                System.out.println("pattern role: " + p.role());
-              }
-          }
-      }  
+        App.processFromFile();
+       
+    }
+
+    public static void processFromFile(){
+         File f = new File("components.ser");
+        HashMap<String, ArrayList<ComponentRepresentation>> allComponents = ProcessorUtils.readFromFile(f);
+        ArrayList<String> models = ProcessorUtils.generateAlloyModelsStr(allComponents);
+        for (String model : models) {
+            try {
+                // should return a data structure that encapsulates whether the check passed or not and a message
+                //AlloyTest.passToAlloy(model);
+                AlloyTest.passStrToAlloy(model);
+                //AlloyTest.passToAlloy("alloy_test.als");
+            } catch (Err ex) {
+                log.error(ex);
+            }
+        }
+
     }
 }

@@ -4,22 +4,10 @@
  */
 package com.apkc.archtype.processors;
 
-import com.apkc.archtype.alloy.AlloyTest;
-import com.apkc.archtype.models.Model;
 import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
-import edu.mit.csail.sdg.alloy4.Err;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -81,10 +69,7 @@ public class ComponentProcessor extends AbstractProcessor {
         }
         temp_file_path = (String)object.get("path");
         keep_processing = (boolean)object.get("continue");
-        log.debug(object.get("path"));
-        log.debug(object.get("continue"));
-
-
+        
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
         Messager messager = processingEnv.getMessager();
@@ -105,49 +90,28 @@ public class ComponentProcessor extends AbstractProcessor {
         //processor in generateOptionProcessor method
         setUpReferences(references, components);
         File f = new File(temp_file_path + "components.ser");
-        if(claimed){
-            int size = components.size();
-            try {
-                f.createNewFile();
-                ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
-                Iterator iterator = components.entrySet().iterator();
-                oos.writeObject(size);
-                while(iterator.hasNext()){
-                    Map.Entry next = (Map.Entry) iterator.next();
-                    String patternName = (String) next.getKey();
-                    oos.writeObject(patternName);
-                    oos.writeObject(next.getValue());
-                }
-                oos.close();
-            } catch (IOException ex) {
-                log.error(ex);
+        log.debug(f.exists());
+        if(claimed ){
+            HashMap<String, ArrayList<ComponentRepresentation>> allComponents = new HashMap<>();
+            if(f.exists()) {
+                HashMap<String, ArrayList<ComponentRepresentation>> readComponents = ProcessorUtils.readFromFile(f);
+                allComponents.putAll(readComponents);
             }
-            HashMap<String,ArrayList<ComponentRepresentation>> readComponents =
-                    new HashMap<>();
-            try {
-                ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(f)));
-                int reads = 0;
-                int objects = (int) ois.readObject();
-                while(reads < objects){
-                    String ptn = (String)ois.readObject();
-                    ArrayList<ComponentRepresentation> acr = (ArrayList<ComponentRepresentation>) ois.readObject();
-                    readComponents.put(ptn,acr);
-                    reads++;
-                }
-            } catch (IOException | ClassNotFoundException ex) {
-                log.error(ex);
-            }
-            ArrayList<String> models = generateAlloyModelsStr(components);
-            for (String model : models) {
-                try {
-                    // should return a data structure that encapsulates whether the check passed or not and a message
-                    //AlloyTest.passToAlloy(model);
-                    AlloyTest.passStrToAlloy(model);
-                    //AlloyTest.passToAlloy("alloy_test.als");
-                } catch (Err ex) {
-                    log.error(ex);
-                }
-            }
+            allComponents.putAll(components);
+            ProcessorUtils.writeTofile(allComponents, f);
+
+            //
+            //            ArrayList<String> models = generateAlloyModelsStr(allComponents);
+            //            for (String model : models) {
+            //                try {
+            //                    // should return a data structure that encapsulates whether the check passed or not and a message
+            //                    //AlloyTest.passToAlloy(model);
+            //                    AlloyTest.passStrToAlloy(model);
+            //                    //AlloyTest.passToAlloy("alloy_test.als");
+            //                } catch (Err ex) {
+            //                    log.error(ex);
+            //                }
+            //            }
         }
         return claimed;
     }
@@ -209,183 +173,12 @@ public class ComponentProcessor extends AbstractProcessor {
 
     }
 
-    /**
-     *
-     * @param components
-     */
-    private ArrayList<String> generateAlloyModels(HashMap components) {
-        ArrayList<String> fileNames = new ArrayList<>();
-        if (components.isEmpty()) {
-            return fileNames;
-        }
-
-        Iterator componentIterator = components.entrySet().iterator();
-        // Iterate over each pattern and write alloy model
-        while (componentIterator.hasNext()) {
-            Map.Entry next = (Map.Entry) componentIterator.next();
-            String patternName = (String) next.getKey();
-            ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
-
-            try {
-                String pat = "";
-                StringBuilder contains = new StringBuilder("\telements = ");
-                if (componentRepresentation != null) {
-                    Iterator<ComponentRepresentation> it = componentRepresentation.iterator();
-                    while (it.hasNext()) {
-                        ComponentRepresentation c = it.next();
-                        contains.append(c.getComponentName());
-                        if (it.hasNext()) {
-                            pat = c.getPattern();
-                            contains.append(" + ");
-                        } else {
-                            contains.append("\n}\n");
-                        }
-                    }
-                }
-                String generatedFilename = pat + "_" + patternName + "_configuration.als";
-                BufferedWriter out = new BufferedWriter(new FileWriter(generatedFilename), 32768);
-                out.write("open " + pat.toLowerCase() + "\n");
-                out.write("one sig " + patternName + " extends Configuration { } {\n");
-                out.write(contains.toString());
-                if (componentRepresentation != null) {
-                    Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
-                    while (ite.hasNext()) {
-                        ComponentRepresentation c = ite.next();
-                        out.write(c.toString());
-                    }
-                    ite = componentRepresentation.iterator();
-                    while (ite.hasNext()) {
-                        ComponentRepresentation c = ite.next();
-                        writeAsserts(out, pat, patternName, c.getRole(), c.getComponentName());
-
-                    }
-                    ite = componentRepresentation.iterator();
-                    while (ite.hasNext()) {
-                        ComponentRepresentation c = ite.next();
-                        writeCommands(out, pat, c.getComponentName());
-
-                    }
-                }
-
-                out.close();
-                fileNames.add(generatedFilename);
-            } catch (IOException ex) {
-                log.warn(ex);
-            }
-        }
-        return fileNames;
-    }
-
-    /**
-     *
-     * @param components
-     */
-    private ArrayList<String> generateAlloyModelsStr(HashMap components) {
-        ArrayList<String> models = new ArrayList<>();
-        if (components.isEmpty()) {
-            return models;
-        }
-
-        Iterator componentIterator = components.entrySet().iterator();
-        // Iterate over each pattern and write alloy model
-        while (componentIterator.hasNext()) {
-            Map.Entry next = (Map.Entry) componentIterator.next();
-            String patternName = (String) next.getKey();
-            ArrayList<ComponentRepresentation> componentRepresentation = (ArrayList<ComponentRepresentation>) next.getValue();
-
-            StringBuilder finalStr = new StringBuilder("");
-            String pat = "";
-            StringBuilder contains = new StringBuilder("\telements = ");
-            if (componentRepresentation != null) {
-                Iterator<ComponentRepresentation> it = componentRepresentation.iterator();
-                while (it.hasNext()) {
-                    ComponentRepresentation c = it.next();
-                    contains.append(c.getComponentName());
-                    if (it.hasNext()) {
-                        pat = c.getPattern();
-                        contains.append(" + ");
-                    } else {
-                        contains.append("\n}\n");
-                    }
-                }
-            }
-            Model model = new Model();
-            finalStr.append(model.getModel(pat.toLowerCase(), Boolean.TRUE));
-            //finalStr.append("open " + pat.toLowerCase() + "\n");
-            finalStr.append("\none sig ").append(patternName).append(" extends Configuration { } {\n");
-            finalStr.append(contains.toString());
-
-            if (componentRepresentation != null) {
-                Iterator<ComponentRepresentation> ite = componentRepresentation.iterator();
-                while (ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    finalStr.append(c.toString());
-                }
-                ite = componentRepresentation.iterator();
-                while (ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    writeAssertsStr(finalStr, pat, patternName, c.getRole(), c.getComponentName());
-
-                }
-                ite = componentRepresentation.iterator();
-                while (ite.hasNext()) {
-                    ComponentRepresentation c = ite.next();
-                    writeCommandsStr(finalStr, pat, c.getComponentName());
-                }
-            }
-            models.add(finalStr.toString());
-        }
-        return models;
-    }
-
-    /**
-     * Should analyze which pattern is used and write the appropriate commands
-     * for that pattern, using the writer.
-     *
-     * @param bw
-     * @param pattern
-     */
-    private void writeCommands(BufferedWriter bw, String pattern, String componentName) throws IOException {
-        bw.write("check " + componentName.toLowerCase() + " for 8\n");
-    }
-
-    private void writeCommandsStr(StringBuilder sb, String pattern, String componentName) {
-        sb.append("check ")
-                .append(componentName.toLowerCase())
-                .append(" for 8 but 1 Configuration\n");
-    }
-
-    /**
-     *
-     * @param bw
-     * @param pattern
-     * @param patternName
-     * @throws IOException
-     */
-    private void writeAsserts(BufferedWriter bw, String pattern, String patternName, String role, String componentName) throws IOException {
-        bw.write("assert " + componentName.toLowerCase() + " {\n");
-        bw.write("\t" + pattern.toLowerCase() + "_" + role.toLowerCase() + "_style[" + patternName + "]\n");
-        bw.write("}\n");
-    }
-
-    private void writeAssertsStr(StringBuilder sb, String pattern, String patternName, String role, String componentName) {
-        sb.append("assert ")
-                .append(componentName.toLowerCase())
-                .append(" {\n\t")
-                .append(pattern.toLowerCase())
-                .append("_")
-                .append(role.toLowerCase())
-                .append("_style[")
-                .append(patternName)
-                .append("]\n}\n");
-    }
 
     /**
      *
      * @param com
      * @param e
      */
-
     private void debugComponent(ArchTypeComponent com, Element e){
         log.debug("{");
         log.debug("Component: ");
