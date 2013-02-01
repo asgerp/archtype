@@ -99,19 +99,6 @@ public class ComponentProcessor extends AbstractProcessor {
             }
             allComponents.putAll(components);
             ProcessorUtils.writeTofile(allComponents, f);
-
-            //
-            //            ArrayList<String> models = generateAlloyModelsStr(allComponents);
-            //            for (String model : models) {
-            //                try {
-            //                    // should return a data structure that encapsulates whether the check passed or not and a message
-            //                    //AlloyTest.passToAlloy(model);
-            //                    AlloyTest.passStrToAlloy(model);
-            //                    //AlloyTest.passToAlloy("alloy_test.als");
-            //                } catch (Err ex) {
-            //                    log.error(ex);
-            //                }
-            //            }
         }
         return claimed;
     }
