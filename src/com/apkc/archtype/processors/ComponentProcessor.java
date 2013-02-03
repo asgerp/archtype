@@ -4,17 +4,19 @@
  */
 package com.apkc.archtype.processors;
 
+import com.apkc.archtype.App;
 import com.apkc.archtype.quals.ArchTypeComponent;
 import com.apkc.archtype.quals.Pattern;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.Properties;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -26,9 +28,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import org.apache.commons.lang3.*;
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 
 /**
@@ -42,7 +41,7 @@ import org.json.simple.parser.ParseException;
 public class ComponentProcessor extends AbstractProcessor {
     final static Logger log = Logger.getLogger(ComponentProcessor.class.getName());
     String temp_file_path;
-    boolean keep_processing;
+    String keep_processing;
     /**
      *
      * @param annotations annotations - contains the set of annotations that we
@@ -58,17 +57,14 @@ public class ComponentProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        String text = null;
-        JSONParser parser = new JSONParser();
-        JSONObject object = null;
+        Properties prop = new Properties();
         try {
-            text = new Scanner( new File("config.json") ).useDelimiter("\\A").next();
-            object = (JSONObject) parser.parse(text);
-        } catch (FileNotFoundException | ParseException ex) {
-            log.error(ex.getMessage());
+            prop.load(new FileInputStream("config.properties"));
+        } catch (IOException ex) {
+            log.error(ex);
         }
-        temp_file_path = (String)object.get("path");
-        keep_processing = (boolean)object.get("continue");
+        temp_file_path = prop.getProperty("path","");
+        keep_processing = prop.getProperty("continue");
         
         //processingEnv is a predefined member in AbstractProcessor class
         //Messager allows the processor to output messages to the environment
@@ -99,6 +95,9 @@ public class ComponentProcessor extends AbstractProcessor {
             }
             allComponents.putAll(components);
             ProcessorUtils.writeTofile(allComponents, f);
+        }
+        if(keep_processing.equals("yes")){
+            App.processFromFile();
         }
         return claimed;
     }
